@@ -1,20 +1,53 @@
+import { useEffect, useRef } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { linking } from './src/navigation/linking';
+import RootNavigator from './src/navigation/RootNavigator';
+import './global.css';
+import { useAuth } from './src/hooks/useAuth';
+import { authService } from './src/services/auth.service';
 
-export default function App() {
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+function AppShell() {
+  const { user, setAuth } = useAuth();
+  const hasHydrated = useRef(false);
+
+  useEffect(() => {
+    if (hasHydrated.current || user) return;
+    hasHydrated.current = true;
+
+    authService
+      .me()
+      .then((currentUser) => {
+        setAuth({ token: 'demo-token', user: currentUser });
+      })
+      .catch((error) => {
+        console.warn('Hydrate auth failed', error);
+      });
+  }, [setAuth, user]);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <>
+      <StatusBar style="dark" />
+      <RootNavigator />
+    </>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <NavigationContainer linking={linking}>
+        <AppShell />
+      </NavigationContainer>
+    </QueryClientProvider>
+  );
+}
