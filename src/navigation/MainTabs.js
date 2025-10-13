@@ -87,7 +87,7 @@ function AppHeader({
   avatarColor = '#0D9488',
 }) {
   return (
-    <View className="flex-row items-center justify-between bg-white px-6 pt-6 pb-4 shadow-sm">
+    <View className="flex-row items-center justify-between bg-white px-6 pt-14 pb-4 shadow-sm">
       <TouchableOpacity
         onPress={onOpenMenu}
         className="mr-3 h-11 w-11 items-center justify-center rounded-full bg-slate-100"
@@ -261,7 +261,7 @@ export default function MainTabs() {
           tabBarActiveTintColor: '#0D9488',
           tabBarInactiveTintColor: '#94A3B8',
           tabBarStyle: {
-            height: 78,
+            height: 115,
             paddingBottom: 14,
             paddingTop: 12,
             borderTopWidth: 0,
