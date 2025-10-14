@@ -8,6 +8,7 @@ import RootNavigator from './src/navigation/RootNavigator';
 import './global.css';
 import { useAuth } from './src/hooks/useAuth';
 import { authService } from './src/services/auth.service';
+import { useFonts } from "expo-font";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,6 +45,16 @@ function AppShell() {
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Roboto: require("./assets/fonts/Roboto-Regular.ttf"),
+    RobotoBold: require("./assets/fonts/Roboto-Bold.ttf"),
+  });
+
+  // Nếu font chưa load thì return null (hoặc splash screen)
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>

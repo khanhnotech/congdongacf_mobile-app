@@ -16,8 +16,8 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "vn.acf.community",      
-      "versionCode": 1,                      
+      "package": "vn.acf.community",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -31,6 +31,9 @@
       "eas": {
         "projectId": "c422d398-b175-42cf-bfa7-57bf7b7859bb"
       }
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
