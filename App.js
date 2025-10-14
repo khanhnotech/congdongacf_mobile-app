@@ -46,8 +46,8 @@ function AppShell() {
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    Roboto: require("./assets/fonts/Roboto-Regular.ttf"),
-    RobotoBold: require("./assets/fonts/Roboto-Bold.ttf"),
+    Roboto: require("./src/assets/fonts/Roboto-Regular.ttf"),
+    RobotoBold: require("./src/assets/fonts/Roboto-Bold.ttf"),
   });
 
   // Nếu font chưa load thì return null (hoặc splash screen)

@@ -92,7 +92,7 @@ export default function RootNavigator() {
       <Stack.Screen
         name={ROUTES.STACK.POST_DETAIL}
         component={PostDetail}
-        options={{ headerShown: true, title: 'Chi ti?t b�i vi?t' }}
+        options={{ headerShown: true, title: 'Chi tiết bài viết' }}
       />
       <Stack.Screen
         name="MyProfileModal"

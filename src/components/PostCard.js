@@ -51,7 +51,7 @@ export default function PostCard({ post, onPress }) {
       <Text className="mt-3 text-base font-bold text-red-600">{post.title}</Text>
       <Text className="mt-2 text-sm leading-6 text-slate-600">
         {previewText}{' '}
-        {shouldClamp ? <Text className="font-semibold text-red-600">Xem them</Text> : null}
+        {shouldClamp ? <Text className="font-semibold text-red-600">Xem thêm</Text> : null}
       </Text>
 
       {post.cover ? (
@@ -66,21 +66,21 @@ export default function PostCard({ post, onPress }) {
           className="flex-row items-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2"
         >
           <MaterialCommunityIcons name="heart-outline" size={18} color="#DC2626" />
-          <Text className="text-sm font-medium text-red-600">Thich</Text>
+          <Text className="text-sm font-medium text-red-600">Thích</Text>
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={0.8}
           className="flex-row items-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2"
         >
           <MaterialCommunityIcons name="comment-outline" size={18} color="#DC2626" />
-          <Text className="text-sm font-medium text-red-600">Binh luan</Text>
+          <Text className="text-sm font-medium text-red-600">Bình luận</Text>
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={0.8}
           className="ml-auto flex-row items-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2"
         >
           <MaterialCommunityIcons name="share-variant" size={18} color="#DC2626" />
-          <Text className="text-sm font-medium text-red-600">Chia se</Text>
+          <Text className="text-sm font-medium text-red-600">Chia sẻ</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
