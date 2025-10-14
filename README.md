@@ -2,6 +2,11 @@
 
 Ứng dụng di động cộng đồng ACF (Anti-Counterfeiting Foundation) - Hệ thống phòng chống hàng giả và bảo vệ người tiêu dùng Việt Nam.
 
+## 📱 Thư viện cần cài để sử dụng được app
+npm i expo
+## 📱 Lệnh khởi động 
+npx expo start hoặc muốn reset cache npx expo start -c
+
 ## 📱 Tổng quan
 
 Đây là ứng dụng React Native được xây dựng với Expo, cung cấp nền tảng cộng đồng cho các hoạt động phòng chống hàng giả, chia sẻ thông tin pháp lý, và kết nối các thành viên trong cộng đồng.
