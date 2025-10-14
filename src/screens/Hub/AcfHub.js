@@ -21,7 +21,7 @@ const cards = [
 export default function AcfHub() {
   return (
     <ScrollView className="flex-1 bg-slate-100 px-6 pt-14 pb-24">
-      <View className="rounded-3xl bg-emerald-500 p-6 shadow-lg">
+      <View className="rounded-3xl bg-red-500 p-6 shadow-lg">
         <Text className="text-xs uppercase tracking-[0.2em] text-white/80">
           ACF HUB
         </Text>
@@ -51,3 +51,4 @@ export default function AcfHub() {
     </ScrollView>
   );
 }
+

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { linking } from './src/navigation/linking';
 import RootNavigator from './src/navigation/RootNavigator';
 import './global.css';
@@ -45,9 +46,11 @@ function AppShell() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <NavigationContainer linking={linking}>
-        <AppShell />
-      </NavigationContainer>
+      <SafeAreaProvider>
+        <NavigationContainer linking={linking}>
+          <AppShell />
+        </NavigationContainer>
+      </SafeAreaProvider>
     </QueryClientProvider>
   );
 }

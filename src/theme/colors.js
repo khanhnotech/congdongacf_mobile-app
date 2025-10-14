@@ -1,7 +1,7 @@
 export const palette = {
-  primary: '#0D9488',
-  primaryLight: '#5EEAD4',
-  accent: '#F59E0B',
+  primary: '#DC2626',
+  primaryLight: '#F87171',
+  accent: '#F97316',
   neutral: '#111827',
   background: '#F9FAFB',
   surface: '#FFFFFF',
@@ -9,7 +9,7 @@ export const palette = {
   muted: '#6B7280',
   success: '#16A34A',
   warning: '#EAB308',
-  danger: '#DC2626',
+  danger: '#B91C1C',
 };
 
 export const semantic = {

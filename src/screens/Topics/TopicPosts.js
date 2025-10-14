@@ -1,13 +1,15 @@
 import { useMemo } from 'react';
 import { FlatList, Text, View } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import PostCard from '../../components/PostCard';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
 import { usePosts } from '../../hooks/usePosts';
+import { ROUTES } from '../../utils/constants';
 
 export default function TopicPosts() {
   const route = useRoute();
+  const navigation = useNavigation();
   const { topicId, highlightedPostId } = route.params ?? {};
   const { listQuery } = usePosts();
 
@@ -24,7 +26,7 @@ export default function TopicPosts() {
 
   return (
     <View className="flex-1 bg-slate-100 px-6 pt-14">
-      <Text className="mb-2 text-xs uppercase text-emerald-600">
+      <Text className="mb-2 text-xs uppercase text-red-600">
         Chủ đề cộng đồng
       </Text>
       <Text className="text-3xl font-bold text-slate-900">
@@ -47,9 +49,7 @@ export default function TopicPosts() {
         renderItem={({ item }) => (
           <PostCard
             post={item}
-            onPress={() => {
-              console.log('Open post detail', item.id);
-            }}
+            onPress={() => navigation.navigate(ROUTES.STACK.POST_DETAIL, { postId: item.id })}
           />
         )}
         contentContainerStyle={{ paddingBottom: 160 }}
@@ -69,3 +69,4 @@ export default function TopicPosts() {
     </View>
   );
 }
+

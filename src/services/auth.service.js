@@ -25,6 +25,11 @@ export const authService = {
     await delay();
     return mockUser;
   },
+  async forgotPassword(payload) {
+    console.log('authService.forgotPassword', payload);
+    await delay();
+    return true;
+  },
   async updateProfile(changes) {
     console.log('authService.updateProfile', changes);
     await delay();

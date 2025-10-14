@@ -27,7 +27,7 @@ export default function Login() {
   };
 
   return (
-    <View className="flex-1 justify-center bg-slate-900 px-6">
+    <View className="flex-1 justify-center bg-red-600 px-6">
       <View className="rounded-3xl bg-white p-8">
         <Text className="text-3xl font-bold text-slate-900">
           Chào bạn quay lại!
@@ -63,10 +63,20 @@ export default function Login() {
             />
           </View>
 
+          <View className="items-end">
+            <TouchableOpacity
+              onPress={() => navigation.navigate(ROUTES.AUTH.FORGOT_PASSWORD)}
+            >
+              <Text className="text-sm font-medium text-red-600">
+                Quên mật khẩu?
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
             onPress={handleLogin}
             disabled={isSubmitting}
-            className={`rounded-2xl bg-emerald-500 py-4 ${
+            className={`rounded-2xl bg-red-500 py-4 ${
               isSubmitting ? 'opacity-60' : ''
             }`}
           >
@@ -81,7 +91,7 @@ export default function Login() {
           >
             <Text className="text-center text-sm text-slate-500">
               Chưa có tài khoản?{' '}
-              <Text className="font-semibold text-emerald-500">
+              <Text className="font-semibold text-red-500">
                 Đăng ký ngay
               </Text>
             </Text>
@@ -91,3 +101,4 @@ export default function Login() {
     </View>
   );
 }
+

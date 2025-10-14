@@ -18,7 +18,7 @@ export default function HighlightCarousel({ items = [] }) {
             <Image source={{ uri: item.image }} className="h-36 w-full" />
           ) : null}
           <View className="gap-2 p-4">
-            <Text className="text-xs uppercase tracking-wide text-emerald-600">
+            <Text className="text-xs uppercase tracking-wide text-red-600">
               {item.tagline}
             </Text>
             <Text className="text-lg font-semibold text-slate-900">
@@ -33,3 +33,4 @@ export default function HighlightCarousel({ items = [] }) {
     </ScrollView>
   );
 }
+

@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import MainTabs from './MainTabs';
 import Login from '../screens/Auth/Login';
 import Register from '../screens/Auth/Register';
+import ForgotPassword from '../screens/Auth/ForgotPassword';
 import ActivitiesList from '../screens/Activities/ActivitiesList';
 import ActivityDetail from '../screens/Activities/ActivityDetail';
 import LegalList from '../screens/Legal/LegalList';
@@ -15,6 +16,7 @@ import MyProfile from '../screens/Profile/MyProfile';
 import EditProfile from '../screens/Profile/EditProfile';
 import ProfileView from '../screens/User/ProfileView';
 import CreatePost from '../screens/Post/CreatePost';
+import PostDetail from '../screens/Post/PostDetail';
 import { ROUTES } from '../utils/constants';
 
 const Stack = createNativeStackNavigator();
@@ -30,6 +32,7 @@ export default function RootNavigator() {
     >
       <Stack.Screen name={ROUTES.AUTH.LOGIN} component={Login} />
       <Stack.Screen name={ROUTES.AUTH.REGISTER} component={Register} />
+      <Stack.Screen name={ROUTES.AUTH.FORGOT_PASSWORD} component={ForgotPassword} />
       <Stack.Screen name={ROUTES.MAIN_TABS} component={MainTabs} />
       <Stack.Screen
         name={ROUTES.STACK.ACTIVITY_DETAIL}
@@ -85,6 +88,11 @@ export default function RootNavigator() {
         name={ROUTES.STACK.CREATE_POST}
         component={CreatePost}
         options={{ headerShown: true, title: 'Tạo bài viết' }}
+      />
+      <Stack.Screen
+        name={ROUTES.STACK.POST_DETAIL}
+        component={PostDetail}
+        options={{ headerShown: true, title: 'Chi ti?t b�i vi?t' }}
       />
       <Stack.Screen
         name="MyProfileModal"

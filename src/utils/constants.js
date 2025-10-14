@@ -2,6 +2,7 @@ export const ROUTES = {
   AUTH: {
     LOGIN: 'Login',
     REGISTER: 'Register',
+    FORGOT_PASSWORD: 'ForgotPassword',
   },
   MAIN_TABS: 'MainTabs',
   TABS: {
@@ -23,6 +24,7 @@ export const ROUTES = {
     CREATE_POST: 'CreatePost',
     CONTACT_FORM: 'ContactForm',
     EDIT_PROFILE: 'EditProfile',
+    POST_DETAIL: 'PostDetail',
     LEGAL_LIST: 'LegalList',
     TOPICS_GRID: 'TopicsGrid',
     MEDIA_LIBRARY: 'MediaLibrary',

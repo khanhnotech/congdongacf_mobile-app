@@ -6,6 +6,7 @@ export const linking = {
     screens: {
       [ROUTES.AUTH.LOGIN]: 'login',
       [ROUTES.AUTH.REGISTER]: 'register',
+      [ROUTES.AUTH.FORGOT_PASSWORD]: 'forgot-password',
       [ROUTES.MAIN_TABS]: {
         path: '',
         screens: {
@@ -25,6 +26,7 @@ export const linking = {
       [ROUTES.STACK.MEDIA_VIEWER]: 'media/:id',
       [ROUTES.STACK.PROFILE_VIEW]: 'user/:id',
       [ROUTES.STACK.CREATE_POST]: 'posts/new',
+      [ROUTES.STACK.POST_DETAIL]: 'posts/:id',
     },
   },
 };

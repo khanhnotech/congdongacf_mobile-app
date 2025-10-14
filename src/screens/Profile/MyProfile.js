@@ -27,7 +27,7 @@ export default function MyProfile() {
               user.avatar ??
               'https://dummyimage.com/128x128/0f172a/ffffff&text=ACF',
           }}
-          className="h-28 w-28 rounded-full border-4 border-emerald-500"
+          className="h-28 w-28 rounded-full border-4 border-red-500"
         />
         <Text className="mt-4 text-2xl font-bold text-slate-900">
           {formatName(user)}
@@ -40,7 +40,7 @@ export default function MyProfile() {
         <View className="mt-6 w-full flex-row justify-center gap-3">
           <TouchableOpacity
             onPress={() => navigation.navigate(ROUTES.STACK.EDIT_PROFILE)}
-            className="flex-1 rounded-2xl bg-emerald-500 py-3"
+            className="flex-1 rounded-2xl bg-red-500 py-3"
             activeOpacity={0.85}
           >
             <Text className="text-center text-base font-semibold text-white">
@@ -70,3 +70,4 @@ export default function MyProfile() {
     </View>
   );
 }
+

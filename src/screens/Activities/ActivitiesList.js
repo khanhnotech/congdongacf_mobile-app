@@ -41,7 +41,7 @@ export default function ActivitiesList() {
             activeOpacity={0.85}
             className="rounded-3xl bg-white p-5 shadow-sm"
           >
-            <Text className="text-sm uppercase tracking-wider text-emerald-600">
+            <Text className="text-sm uppercase tracking-wider text-red-600">
               {formatDate(item.date)}
             </Text>
             <Text className="mt-1 text-xl font-semibold text-slate-900">
@@ -58,3 +58,4 @@ export default function ActivitiesList() {
     </View>
   );
 }
+

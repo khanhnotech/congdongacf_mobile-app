@@ -27,7 +27,7 @@ export default function ActivityDetail() {
 
   return (
     <ScrollView className="flex-1 bg-white px-6 pt-14 pb-24">
-      <Text className="text-xs uppercase text-emerald-600">
+      <Text className="text-xs uppercase text-red-600">
         {formatDate(activity.date)}
       </Text>
       <Text className="mt-2 text-3xl font-bold text-slate-900">
@@ -54,3 +54,4 @@ export default function ActivityDetail() {
     </ScrollView>
   );
 }
+

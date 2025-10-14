@@ -27,7 +27,7 @@ export default function HomeScreen() {
   return (
     <ScrollView className="flex-1 bg-slate-100">
       <View className="gap-6 px-6 pt-14 pb-24">
-        <View className="rounded-3xl bg-emerald-500 p-6 shadow">
+        <View className="rounded-3xl bg-red-500 p-6 shadow">
           <Text className="text-xs uppercase tracking-wider text-white/80">
             Cộng đồng ACF
           </Text>
@@ -44,7 +44,7 @@ export default function HomeScreen() {
             <Text className="text-lg font-semibold text-slate-900">
               Chủ đề nổi bật
             </Text>
-            <Text className="text-xs uppercase tracking-wider text-emerald-600">
+            <Text className="text-xs uppercase tracking-wider text-red-600">
               Xem tất cả
             </Text>
           </View>
@@ -91,10 +91,7 @@ export default function HomeScreen() {
                 key={post.id}
                 post={post}
                 onPress={() =>
-                  navigation.navigate(ROUTES.STACK.TOPIC_POSTS, {
-                    topicId: post.topicId,
-                    highlightedPostId: post.id,
-                  })
+                  navigation.navigate(ROUTES.STACK.POST_DETAIL, { postId: post.id })
                 }
               />
             ))
@@ -104,3 +101,4 @@ export default function HomeScreen() {
     </ScrollView>
   );
 }
+

@@ -52,7 +52,7 @@ export default function ContactForm() {
 
       <TouchableOpacity
         onPress={handleSubmit}
-        className="mt-6 rounded-2xl bg-emerald-500 py-4"
+        className="mt-6 rounded-2xl bg-red-500 py-4"
         activeOpacity={0.85}
       >
         <Text className="text-center text-base font-semibold text-white">
@@ -62,3 +62,4 @@ export default function ContactForm() {
     </View>
   );
 }
+

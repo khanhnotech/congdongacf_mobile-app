@@ -33,7 +33,7 @@ export default function EditProfile() {
 
   return (
     <View className="flex-1 bg-slate-100 px-6 pt-14">
-      <Text className="text-xs uppercase text-emerald-600">
+      <Text className="text-xs uppercase text-red-600">
         Hồ sơ cá nhân
       </Text>
       <Text className="text-3xl font-bold text-slate-900">
@@ -70,7 +70,7 @@ export default function EditProfile() {
       <TouchableOpacity
         onPress={handleSubmit}
         disabled={isSaving}
-        className={`mt-6 rounded-2xl bg-emerald-500 py-4 ${
+        className={`mt-6 rounded-2xl bg-red-500 py-4 ${
           isSaving ? 'opacity-60' : ''
         }`}
         activeOpacity={0.85}
@@ -82,3 +82,4 @@ export default function EditProfile() {
     </View>
   );
 }
+

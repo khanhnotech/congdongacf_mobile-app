@@ -35,7 +35,7 @@ export default function Register() {
   };
 
   return (
-    <View className="flex-1 justify-center bg-emerald-600 px-6">
+    <View className="flex-1 justify-center bg-red-600 px-6">
       <View className="rounded-3xl bg-white p-8">
         <Text className="text-3xl font-bold text-slate-900">
           Tạo tài khoản mới
@@ -91,7 +91,7 @@ export default function Register() {
           >
             <Text className="text-center text-sm text-slate-500">
               Đã có tài khoản?{' '}
-              <Text className="font-semibold text-emerald-600">
+              <Text className="font-semibold text-red-600">
                 Đăng nhập ngay
               </Text>
             </Text>
@@ -101,3 +101,4 @@ export default function Register() {
     </View>
   );
 }
+

@@ -1,33 +1,87 @@
 import { Image, Text, TouchableOpacity, View } from 'react-native';
-import { formatDate, truncate } from '../utils/format';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { formatDateTime } from '../utils/format';
+import { ROUTES } from '../utils/constants';
 
 export default function PostCard({ post, onPress }) {
   if (!post) return null;
 
+  const navigation = useNavigation();
+  const initials =
+    post.author
+      ?.split(' ')
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() ?? 'AC';
+
+  const previewLimit = 150;
+  const excerpt = post.excerpt ?? '';
+  const shouldClamp = excerpt.length > previewLimit;
+  const previewText = shouldClamp ? `${excerpt.slice(0, previewLimit)}...` : excerpt;
+
+  const handlePress = () => {
+    if (onPress) {
+      onPress(post);
+      return;
+    }
+
+    if (post.id) {
+      navigation.navigate(ROUTES.STACK.POST_DETAIL, { postId: post.id });
+    }
+  };
+
   return (
     <TouchableOpacity
-      onPress={() => onPress?.(post)}
+      onPress={handlePress}
       activeOpacity={0.85}
-      className="mb-4 overflow-hidden rounded-2xl bg-white shadow"
+      className="mb-6 overflow-hidden rounded-3xl border border-red-100 bg-white p-5 shadow-sm"
     >
-      {post.cover ? (
-        <Image source={{ uri: post.cover }} className="h-40 w-full" />
-      ) : null}
-      <View className="gap-2 p-4">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-xs uppercase tracking-wide text-emerald-600">
-            {post.author}
-          </Text>
-          <Text className="text-xs text-slate-400">
-            {formatDate(post.createdAt)}
-          </Text>
+      <View className="flex-row items-center gap-3">
+        <View className="h-10 w-10 items-center justify-center rounded-full bg-slate-200">
+          <Text className="text-sm font-semibold text-slate-700">{initials}</Text>
         </View>
-        <Text className="text-lg font-semibold text-slate-900">
-          {post.title}
-        </Text>
-        <Text className="text-sm leading-5 text-slate-600">
-          {truncate(post.excerpt, 140)}
-        </Text>
+        <View className="flex-1">
+          <Text className="text-sm font-semibold text-red-600">{post.author}</Text>
+          <Text className="text-xs text-slate-400">{formatDateTime(post.createdAt)}</Text>
+        </View>
+      </View>
+
+      <Text className="mt-3 text-base font-bold text-red-600">{post.title}</Text>
+      <Text className="mt-2 text-sm leading-6 text-slate-600">
+        {previewText}{' '}
+        {shouldClamp ? <Text className="font-semibold text-red-600">Xem them</Text> : null}
+      </Text>
+
+      {post.cover ? (
+        <View className="mt-4 overflow-hidden rounded-3xl border border-slate-100">
+          <Image source={{ uri: post.cover }} className="h-48 w-full" />
+        </View>
+      ) : null}
+
+      <View className="mt-5 flex-row items-center gap-3">
+        <TouchableOpacity
+          activeOpacity={0.8}
+          className="flex-row items-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2"
+        >
+          <MaterialCommunityIcons name="heart-outline" size={18} color="#DC2626" />
+          <Text className="text-sm font-medium text-red-600">Thich</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          className="flex-row items-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2"
+        >
+          <MaterialCommunityIcons name="comment-outline" size={18} color="#DC2626" />
+          <Text className="text-sm font-medium text-red-600">Binh luan</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          className="ml-auto flex-row items-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2"
+        >
+          <MaterialCommunityIcons name="share-variant" size={18} color="#DC2626" />
+          <Text className="text-sm font-medium text-red-600">Chia se</Text>
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );

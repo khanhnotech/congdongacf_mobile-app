@@ -59,7 +59,7 @@ export default function CreatePost() {
       <TouchableOpacity
         onPress={handleSubmit}
         disabled={isSubmitting}
-        className={`mt-6 rounded-2xl bg-emerald-500 py-4 ${
+        className={`mt-6 rounded-2xl bg-red-500 py-4 ${
           isSubmitting ? 'opacity-60' : ''
         }`}
         activeOpacity={0.85}
@@ -71,3 +71,4 @@ export default function CreatePost() {
     </ScrollView>
   );
 }
+

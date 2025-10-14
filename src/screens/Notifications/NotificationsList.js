@@ -34,7 +34,7 @@ export default function NotificationsList() {
         ItemSeparatorComponent={() => <View className="h-4" />}
         renderItem={({ item }) => (
           <TouchableOpacity className="rounded-3xl bg-white p-5 shadow-sm">
-            <Text className="text-xs uppercase tracking-wider text-emerald-600">
+            <Text className="text-xs uppercase tracking-wider text-red-600">
               {item.type === 'activity' ? 'Hoạt động' : 'Bài viết'}
             </Text>
             <Text className="mt-1 text-lg font-semibold text-slate-900">

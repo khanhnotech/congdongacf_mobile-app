@@ -33,7 +33,7 @@ export default function ProfileView() {
               user.avatar ??
               'https://dummyimage.com/128x128/1e293b/ffffff&text=ACF',
           }}
-          className="h-28 w-28 rounded-full border-4 border-emerald-500"
+          className="h-28 w-28 rounded-full border-4 border-red-500"
         />
         <Text className="mt-4 text-2xl font-bold text-slate-900">
           {formatName(user)}

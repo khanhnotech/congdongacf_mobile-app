@@ -4,12 +4,12 @@ export default function TopicChip({
   label,
   active = false,
   onPress,
-  color = '#0D9488',
+  color = '#DC2626',
 }) {
   return (
     <TouchableOpacity
       className={`mr-3 rounded-full border px-4 py-2 ${
-        active ? 'bg-emerald-500 border-emerald-500' : 'border-slate-200 bg-white'
+        active ? 'bg-red-500 border-red-500' : 'border-slate-200 bg-white'
       }`}
       onPress={onPress}
       activeOpacity={0.8}
