@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import TopicChip from '../../components/TopicChip';
-import PostCard from '../../components/PostCard';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import EmptyState from '../../components/EmptyState';
-import { usePosts } from '../../hooks/usePosts';
-import { useTopics } from '../../hooks/useTopics';
-import { ROUTES } from '../../utils/constants';
+import TopicChip from '../../../components/TopicChip';
+import PostCard from '../../../components/PostCard';
+import LoadingSpinner from '../../../components/LoadingSpinner';
+import EmptyState from '../../../components/EmptyState';
+import { usePosts } from '../../../hooks/usePosts';
+import { useTopics } from '../../../hooks/useTopics';
+import { ROUTES } from '../../../utils/constants';
 
 export default function HomeScreen() {
   const navigation = useNavigation();

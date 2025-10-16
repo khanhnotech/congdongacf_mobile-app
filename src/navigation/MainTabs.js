@@ -6,11 +6,12 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import HomeScreen from '../screens/Home/HomeScreen';
-import ActivitiesList from '../screens/Activities/ActivitiesList';
-import AcfHub from '../screens/Hub/AcfHub';
-import NotificationsList from '../screens/Notifications/NotificationsList';
-import ProfileTab from '../screens/Profile/ProfileTab';
+import HomeScreen from '../screens/ACF/Home/HomeScreen';
+import PortalScreen from '../screens/Portal/PortalScreen';
+import ActivitiesList from '../screens/ACF/Activities/ActivitiesList';
+import AcfHub from '../screens/ACF/Hub/AcfHub';
+import NotificationsList from '../screens/ACF/Notifications/NotificationsList';
+import ProfileTab from '../screens/ACF/Profile/ProfileTab';
 import { ROUTES } from '../utils/constants';
 import { useAuth } from '../hooks/useAuth';
 
@@ -18,6 +19,7 @@ const Tab = createBottomTabNavigator();
 
 const tabLabels = {
   [ROUTES.TABS.HOME]: 'Trang chủ',
+  [ROUTES.TABS.PORTAL]: 'Cổng',
   [ROUTES.TABS.ACTIVITIES]: 'Hoạt động',
   [ROUTES.TABS.HUB]: 'ACF',
   [ROUTES.TABS.NOTIFICATIONS]: 'Thông báo',
@@ -26,6 +28,7 @@ const tabLabels = {
 
 const tabIconMap = {
   [ROUTES.TABS.HOME]: 'home-variant',
+  [ROUTES.TABS.PORTAL]: 'web',
   [ROUTES.TABS.ACTIVITIES]: 'calendar-check',
   [ROUTES.TABS.NOTIFICATIONS]: 'bell-badge',
   [ROUTES.TABS.PROFILE]: 'account-circle',
@@ -343,6 +346,15 @@ export default function MainTabs() {
         })}
       >
         <Tab.Screen name={ROUTES.TABS.HOME} component={HomeScreen} options={{ title: 'Trang chủ' }} />
+        <Tab.Screen 
+          name={ROUTES.TABS.PORTAL} 
+          component={PortalScreen} 
+          options={{ 
+            title: 'Cổng',
+            headerShown: false,
+            tabBarStyle: { display: 'none' }
+          }} 
+        />
         <Tab.Screen name={ROUTES.TABS.ACTIVITIES} component={ActivitiesList} options={{ title: 'Hoạt động' }} />
         <Tab.Screen
           name={ROUTES.TABS.HUB}

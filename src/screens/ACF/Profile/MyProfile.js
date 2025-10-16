@@ -1,8 +1,8 @@
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../../hooks/useAuth';
-import { ROUTES } from '../../utils/constants';
-import { formatName } from '../../utils/format';
+import { useAuth } from '../../../hooks/useAuth';
+import { ROUTES } from '../../../utils/constants';
+import { formatName } from '../../../utils/format';
 
 export default function MyProfile() {
   const navigation = useNavigation();

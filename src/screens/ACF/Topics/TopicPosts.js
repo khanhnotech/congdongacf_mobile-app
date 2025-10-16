@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import { FlatList, Text, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import PostCard from '../../components/PostCard';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import EmptyState from '../../components/EmptyState';
-import { usePosts } from '../../hooks/usePosts';
-import { ROUTES } from '../../utils/constants';
+import PostCard from '../../../components/PostCard';
+import LoadingSpinner from '../../../components/LoadingSpinner';
+import EmptyState from '../../../components/EmptyState';
+import { usePosts } from '../../../hooks/usePosts';
+import { ROUTES } from '../../../utils/constants';
 
 export default function TopicPosts() {
   const route = useRoute();

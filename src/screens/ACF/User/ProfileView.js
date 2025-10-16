@@ -1,8 +1,8 @@
 import { useRoute } from '@react-navigation/native';
 import { Image, ScrollView, Text, View } from 'react-native';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { useAuth } from '../../hooks/useAuth';
-import { formatName } from '../../utils/format';
+import LoadingSpinner from '../../../components/LoadingSpinner';
+import { useAuth } from '../../../hooks/useAuth';
+import { formatName } from '../../../utils/format';
 
 export default function ProfileView() {
   const route = useRoute();

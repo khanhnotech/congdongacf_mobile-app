@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { authService } from '../../services/auth.service';
-import { ROUTES } from '../../utils/constants';
+import { authService } from '../../../services/auth.service';
+import { ROUTES } from '../../../utils/constants';
 
 export default function ForgotPassword() {
   const navigation = useNavigation();

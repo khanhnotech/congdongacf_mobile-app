@@ -1,8 +1,8 @@
 import { useRoute } from '@react-navigation/native';
 import { ScrollView, Text, View } from 'react-native';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { useActivities } from '../../hooks/useActivities';
-import { formatDate } from '../../utils/format';
+import LoadingSpinner from '../../../components/LoadingSpinner';
+import { useActivities } from '../../../hooks/useActivities';
+import { formatDate } from '../../../utils/format';
 
 export default function ActivityDetail() {
   const route = useRoute();

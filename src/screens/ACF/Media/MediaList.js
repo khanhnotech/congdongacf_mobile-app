@@ -1,9 +1,9 @@
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import EmptyState from '../../components/EmptyState';
-import { useMedia } from '../../hooks/useMedia';
-import { ROUTES } from '../../utils/constants';
+import LoadingSpinner from '../../../components/LoadingSpinner';
+import EmptyState from '../../../components/EmptyState';
+import { useMedia } from '../../../hooks/useMedia';
+import { ROUTES } from '../../../utils/constants';
 
 export default function MediaList() {
   const navigation = useNavigation();

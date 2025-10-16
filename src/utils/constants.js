@@ -7,6 +7,7 @@ export const ROUTES = {
   MAIN_TABS: 'MainTabs',
   TABS: {
     HOME: 'Home',
+    PORTAL: 'Portal',
     ACTIVITIES: 'Activities',
     HUB: 'AcfHub',
     NOTIFICATIONS: 'Notifications',
@@ -28,11 +29,13 @@ export const ROUTES = {
     LEGAL_LIST: 'LegalList',
     TOPICS_GRID: 'TopicsGrid',
     MEDIA_LIBRARY: 'MediaLibrary',
+    PORTAL: 'Portal',
   },
 };
 
 export const TAB_ORDER = [
   ROUTES.TABS.HOME,
+  ROUTES.TABS.PORTAL,
   ROUTES.TABS.ACTIVITIES,
   ROUTES.TABS.HUB,
   ROUTES.TABS.NOTIFICATIONS,

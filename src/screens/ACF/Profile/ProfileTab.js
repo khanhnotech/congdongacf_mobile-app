@@ -1,8 +1,8 @@
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useAuth } from '../../hooks/useAuth';
-import { ROUTES } from '../../utils/constants';
+import { useAuth } from '../../../hooks/useAuth';
+import { ROUTES } from '../../../utils/constants';
 import MyProfile from './MyProfile';
 
 const authActions = [

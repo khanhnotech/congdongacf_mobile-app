@@ -1,7 +1,7 @@
 import { useRoute } from '@react-navigation/native';
 import { Image, ScrollView, Text, View } from 'react-native';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { useMedia } from '../../hooks/useMedia';
+import LoadingSpinner from '../../../components/LoadingSpinner';
+import { useMedia } from '../../../hooks/useMedia';
 
 export default function MediaViewer() {
   const route = useRoute();

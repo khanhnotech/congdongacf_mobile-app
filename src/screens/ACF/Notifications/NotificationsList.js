@@ -1,5 +1,5 @@
 import { FlatList, Text, TouchableOpacity, View } from 'react-native';
-import { formatDate } from '../../utils/format';
+import { formatDate } from '../../../utils/format';
 
 const notifications = [
   {

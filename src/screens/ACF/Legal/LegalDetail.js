@@ -1,8 +1,8 @@
 import { useRoute } from '@react-navigation/native';
 import { ScrollView, Text, View } from 'react-native';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { useLegal } from '../../hooks/useLegal';
-import { formatDate } from '../../utils/format';
+import LoadingSpinner from '../../../components/LoadingSpinner';
+import { useLegal } from '../../../hooks/useLegal';
+import { formatDate } from '../../../utils/format';
 
 export default function LegalDetail() {
   const route = useRoute();

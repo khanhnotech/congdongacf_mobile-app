@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { usePosts } from '../../hooks/usePosts';
+import { usePosts } from '../../../hooks/usePosts';
 
 export default function CreatePost() {
   const navigation = useNavigation();

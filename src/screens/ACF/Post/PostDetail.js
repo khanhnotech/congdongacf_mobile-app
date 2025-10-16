@@ -1,10 +1,10 @@
 import { ScrollView, Text, View, Image, TouchableOpacity } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import EmptyState from '../../components/EmptyState';
-import { usePosts } from '../../hooks/usePosts';
-import { formatDateTime } from '../../utils/format';
+import LoadingSpinner from '../../../components/LoadingSpinner';
+import EmptyState from '../../../components/EmptyState';
+import { usePosts } from '../../../hooks/usePosts';
+import { formatDateTime } from '../../../utils/format';
 
 export default function PostDetail() {
   const route = useRoute();

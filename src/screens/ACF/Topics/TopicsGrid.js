@@ -1,9 +1,9 @@
 import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import EmptyState from '../../components/EmptyState';
-import { useTopics } from '../../hooks/useTopics';
-import { ROUTES } from '../../utils/constants';
+import LoadingSpinner from '../../../components/LoadingSpinner';
+import EmptyState from '../../../components/EmptyState';
+import { useTopics } from '../../../hooks/useTopics';
+import { ROUTES } from '../../../utils/constants';
 
 export default function TopicsGrid() {
   const navigation = useNavigation();

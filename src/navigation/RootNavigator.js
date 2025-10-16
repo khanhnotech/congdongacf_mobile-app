@@ -1,22 +1,23 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import MainTabs from './MainTabs';
-import Login from '../screens/Auth/Login';
-import Register from '../screens/Auth/Register';
-import ForgotPassword from '../screens/Auth/ForgotPassword';
-import ActivitiesList from '../screens/Activities/ActivitiesList';
-import ActivityDetail from '../screens/Activities/ActivityDetail';
-import LegalList from '../screens/Legal/LegalList';
-import LegalDetail from '../screens/Legal/LegalDetail';
-import TopicsGrid from '../screens/Topics/TopicsGrid';
-import TopicPosts from '../screens/Topics/TopicPosts';
-import MediaList from '../screens/Media/MediaList';
-import MediaViewer from '../screens/Media/MediaViewer';
-import ContactForm from '../screens/Contact/ContactForm';
-import MyProfile from '../screens/Profile/MyProfile';
-import EditProfile from '../screens/Profile/EditProfile';
-import ProfileView from '../screens/User/ProfileView';
-import CreatePost from '../screens/Post/CreatePost';
-import PostDetail from '../screens/Post/PostDetail';
+import Login from '../screens/ACF/Auth/Login';
+import Register from '../screens/ACF/Auth/Register';
+import ForgotPassword from '../screens/ACF/Auth/ForgotPassword';
+import ActivitiesListScreen from '../screens/ACF/Activities/ActivitiesList';
+import ActivityDetail from '../screens/ACF/Activities/ActivityDetail';
+import LegalList from '../screens/ACF/Legal/LegalList';
+import LegalDetail from '../screens/ACF/Legal/LegalDetail';
+import TopicsGrid from '../screens/ACF/Topics/TopicsGrid';
+import TopicPosts from '../screens/ACF/Topics/TopicPosts';
+import MediaList from '../screens/ACF/Media/MediaList';
+import MediaViewer from '../screens/ACF/Media/MediaViewer';
+import ContactForm from '../screens/ACF/Contact/ContactForm';
+import MyProfile from '../screens/ACF/Profile/MyProfile';
+import EditProfile from '../screens/ACF/Profile/EditProfile';
+import ProfileView from '../screens/ACF/User/ProfileView';
+import CreatePost from '../screens/ACF/Post/CreatePost';
+import PostDetail from '../screens/ACF/Post/PostDetail';
+import PortalScreen from '../screens/Portal/PortalScreen';
 import { ROUTES } from '../utils/constants';
 
 const Stack = createNativeStackNavigator();
@@ -24,7 +25,7 @@ const Stack = createNativeStackNavigator();
 export default function RootNavigator() {
   return (
     <Stack.Navigator
-      initialRouteName={ROUTES.MAIN_TABS}
+      initialRouteName={ROUTES.STACK.PORTAL}
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: '#F9FAFB' },
@@ -101,8 +102,13 @@ export default function RootNavigator() {
       />
       <Stack.Screen
         name="ActivitiesList"
-        component={ActivitiesList}
+        component={ActivitiesListScreen}
         options={{ headerShown: true, title: 'Hoạt động cộng đồng' }}
+      />
+      <Stack.Screen
+        name={ROUTES.STACK.PORTAL}
+        component={PortalScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

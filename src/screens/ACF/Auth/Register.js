@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../../hooks/useAuth';
-import { ROUTES } from '../../utils/constants';
+import { useAuth } from '../../../hooks/useAuth';
+import { ROUTES } from '../../../utils/constants';
 
 export default function Register() {
   const navigation = useNavigation();
