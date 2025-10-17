@@ -1,6 +1,18 @@
 // src/navigation/MainTabs.js
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, Modal, ScrollView, Text, TouchableOpacity, View, Platform, Image } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Animated,
+  Easing,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+  Platform,
+  Image,
+  PanResponder,
+  useWindowDimensions,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -16,6 +28,11 @@ import { ROUTES } from '../utils/constants';
 import { useAuth } from '../hooks/useAuth';
 
 const Tab = createBottomTabNavigator();
+
+function clamp(value, min, max) {
+  if (max < min) return min;
+  return Math.min(Math.max(value, min), max);
+}
 
 const tabLabels = {
   [ROUTES.TABS.HOME]: 'Trang chủ',
@@ -233,38 +250,133 @@ function MenuDrawer({ visible, onClose, onSelect }) {
   );
 }
 
-function LogoTabButton({ onPress, accessibilityState }) {
-  const focused = accessibilityState?.selected;
+const FLOATING_BUTTON_SIZE = 68;
+const FLOATING_MARGIN = 16;
+
+function DraggablePortalButton({ onPress }) {
   const insets = useSafeAreaInsets();
-  // Nổi lên nhưng vẫn cách mép dưới theo safe-area để khỏi đè home indicator
-  const floatUp = 5; // độ nổi cơ bản
-  const extraLift = Math.max(0, insets.bottom - 8) * 0.5;
+  const { width, height } = useWindowDimensions();
+  const pan = useRef(new Animated.ValueXY()).current;
+  const scale = useRef(new Animated.Value(1)).current;
+  const lastPosition = useRef({ x: 0, y: 0 });
+  const dragOrigin = useRef({ x: 0, y: 0 });
+
+  const horizontalMargin = FLOATING_MARGIN;
+  const verticalMargin = FLOATING_MARGIN;
+  const minX = horizontalMargin;
+  const maxX = Math.max(minX, width - FLOATING_BUTTON_SIZE - horizontalMargin);
+  const minY = Math.max(verticalMargin + insets.top, verticalMargin);
+  const maxY = Math.max(minY, height - FLOATING_BUTTON_SIZE - insets.bottom - verticalMargin);
+
+  const initialX = maxX;
+  const initialY = Math.max(minY, maxY - 120);
+
+  useEffect(() => {
+    const boundedX = clamp(lastPosition.current.x || initialX, minX, maxX);
+    const boundedY = clamp(lastPosition.current.y || initialY, minY, maxY);
+    const nextPosition = { x: boundedX, y: boundedY };
+    lastPosition.current = nextPosition;
+    dragOrigin.current = nextPosition;
+    pan.setValue(nextPosition);
+  }, [initialX, initialY, maxX, maxY, minX, minY, pan]);
+
+  const handleNavigate = useCallback(() => {
+    if (typeof onPress === 'function') {
+      onPress();
+    }
+  }, [onPress]);
+
+  const animateScale = useCallback(
+    (value) => {
+      Animated.spring(scale, {
+        toValue: value,
+        useNativeDriver: true,
+        speed: 20,
+        bounciness: value === 1 ? 8 : 0,
+      }).start();
+    },
+    [scale],
+  );
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => false,
+        onPanResponderGrant: () => {
+          pan.stopAnimation();
+          dragOrigin.current = lastPosition.current;
+          animateScale(0.94);
+        },
+        onPanResponderMove: (_, gestureState) => {
+          const nextX = clamp(dragOrigin.current.x + gestureState.dx, minX, maxX);
+          const nextY = clamp(dragOrigin.current.y + gestureState.dy, minY, maxY);
+          pan.setValue({ x: nextX, y: nextY });
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          const nextX = clamp(dragOrigin.current.x + gestureState.dx, minX, maxX);
+          const nextY = clamp(dragOrigin.current.y + gestureState.dy, minY, maxY);
+          lastPosition.current = { x: nextX, y: nextY };
+          pan.setValue(lastPosition.current);
+          animateScale(1);
+          const travel = Math.abs(gestureState.dx) + Math.abs(gestureState.dy);
+          if (travel < 8) {
+            handleNavigate();
+          }
+        },
+        onPanResponderTerminate: (_, gestureState) => {
+          const nextX = clamp(dragOrigin.current.x + gestureState.dx, minX, maxX);
+          const nextY = clamp(dragOrigin.current.y + gestureState.dy, minY, maxY);
+          lastPosition.current = { x: nextX, y: nextY };
+          pan.setValue(lastPosition.current);
+          animateScale(1);
+        },
+      }),
+    [animateScale, handleNavigate, maxX, maxY, minX, minY, pan],
+  );
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.9}
-      className="items-center justify-center"
-      style={{ top: -(floatUp + extraLift) }}
+    <Animated.View
+      {...panResponder.panHandlers}
+      accessibilityRole="button"
+      accessibilityLabel="Đi tới cổng thông tin"
+      onAccessibilityTap={handleNavigate}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: FLOATING_BUTTON_SIZE,
+        height: FLOATING_BUTTON_SIZE,
+        zIndex: 999,
+        transform: [...pan.getTranslateTransform(), { scale }],
+      }}
     >
       <View
-        className={`h-16 w-16 items-center justify-center rounded-full ${
-          focused ? 'bg-red-600' : 'bg-red-500'
-        }`}
         style={{
-          // shadow cross-platform
+          height: FLOATING_BUTTON_SIZE,
+          width: FLOATING_BUTTON_SIZE,
+          borderRadius: FLOATING_BUTTON_SIZE / 2,
+          backgroundColor: '#DC2626',
+          alignItems: 'center',
+          justifyContent: 'center',
           ...Platform.select({
-            ios: { shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } },
-            android: { elevation: 6 },
+            ios: {
+              shadowColor: '#000',
+              shadowOpacity: 0.22,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: 6 },
+            },
+            android: { elevation: 10 },
           }),
         }}
       >
         <Image
           source={require('../assets/logo.png')}
-          className="h-[62px] w-[62px]"
+          style={{ width: FLOATING_BUTTON_SIZE - 10, height: FLOATING_BUTTON_SIZE - 10 }}
           resizeMode="contain"
         />
       </View>
-    </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -295,6 +407,11 @@ export default function MainTabs() {
     rootNavigation.navigate(ROUTES.STACK.TOPICS_GRID);
   };
 
+  const handlePortalShortcut = useCallback(() => {
+    setMenuVisible(false);
+    rootNavigation.navigate(ROUTES.MAIN_TABS, { screen: ROUTES.TABS.PORTAL });
+  }, [rootNavigation]);
+
   // ➜ TabBar responsive theo safe-area
   const TAB_BASE = 60; // base height cho icon + label
   const padBottom = Math.max(insets.bottom, 10); // tối thiểu 10 cho đẹp
@@ -304,70 +421,76 @@ export default function MainTabs() {
     <>
       <MenuDrawer visible={menuVisible} onClose={() => setMenuVisible(false)} onSelect={handleMenuSelect} />
 
-      <Tab.Navigator
-        initialRouteName={ROUTES.TABS.HOME}
-        screenOptions={({ route }) => ({
-          header: () => (
-            <AppHeader
-              title={tabLabels[route.name] ?? 'ACF Community'}
-              onOpenMenu={() => setMenuVisible(true)}
-              onSearch={handleSearch}
-              onAvatarPress={() =>
-                rootNavigation.navigate(ROUTES.MAIN_TABS, { screen: ROUTES.TABS.PROFILE })
-              }
-              avatarInitials={avatarInitials}
-              avatarColor={user ? '#DC2626' : '#94A3B8'}
-            />
-          ),
-          tabBarShowLabel: true,
-          tabBarLabel: tabLabels[route.name],
-          tabBarActiveTintColor: '#DC2626',
-          tabBarInactiveTintColor: '#94A3B8',
-          tabBarHideOnKeyboard: true, // tránh bàn phím che
-          tabBarStyle: {
-            height: tabHeight,
-            paddingBottom: padBottom,
-            paddingTop: 10,
-            borderTopWidth: 0,
-            backgroundColor: '#FFFFFF',
-            borderTopLeftRadius: 28,
-            borderTopRightRadius: 28,
-            ...Platform.select({
-              ios: { shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: -2 } },
-              android: { elevation: 12 },
-            }),
-          },
-          tabBarLabelStyle: { fontSize: 12, fontWeight: '600', marginBottom: 2 },
-          tabBarIcon: ({ color, size, focused }) => {
-            if (route.name === ROUTES.TABS.HUB) return null; // nút tròn custom
-            const iconName = tabIconMap[route.name] ?? 'circle-outline';
-            return <MaterialCommunityIcons name={iconName} color={color} size={focused ? 28 : 24} />;
-          },
-        })}
-      >
-        <Tab.Screen name={ROUTES.TABS.HOME} component={HomeScreen} options={{ title: 'Trang chủ' }} />
-        <Tab.Screen 
-          name={ROUTES.TABS.PORTAL} 
-          component={PortalScreen} 
-          options={{ 
-            title: 'Cổng',
-            headerShown: false,
-            tabBarStyle: { display: 'none' }
-          }} 
-        />
-        <Tab.Screen name={ROUTES.TABS.ACTIVITIES} component={ActivitiesList} options={{ title: 'Hoạt động' }} />
-        <Tab.Screen
-          name={ROUTES.TABS.HUB}
-          component={AcfHub}
-          options={{
-            tabBarLabel: '',
-            title: 'ACF Hub',
-            tabBarButton: (props) => <LogoTabButton {...props} />,
-          }}
-        />
-        <Tab.Screen name={ROUTES.TABS.NOTIFICATIONS} component={NotificationsList} options={{ title: 'Thông báo' }} />
-        <Tab.Screen name={ROUTES.TABS.PROFILE} component={ProfileTab} options={{ title: 'Tôi' }} />
-      </Tab.Navigator>
+      <View style={{ flex: 1 }}>
+        <Tab.Navigator
+          initialRouteName={ROUTES.TABS.HOME}
+          screenOptions={({ route }) => ({
+            header: () => (
+              <AppHeader
+                title={tabLabels[route.name] ?? 'ACF Community'}
+                onOpenMenu={() => setMenuVisible(true)}
+                onSearch={handleSearch}
+                onAvatarPress={() =>
+                  rootNavigation.navigate(ROUTES.MAIN_TABS, { screen: ROUTES.TABS.PROFILE })
+                }
+                avatarInitials={avatarInitials}
+                avatarColor={user ? '#DC2626' : '#94A3B8'}
+              />
+            ),
+            tabBarShowLabel: true,
+            tabBarLabel: tabLabels[route.name],
+            tabBarActiveTintColor: '#DC2626',
+            tabBarInactiveTintColor: '#94A3B8',
+            tabBarHideOnKeyboard: true, // tránh bàn phím che
+            tabBarStyle: {
+              height: tabHeight,
+              paddingBottom: padBottom,
+              paddingTop: 10,
+              borderTopWidth: 0,
+              backgroundColor: '#FFFFFF',
+              borderTopLeftRadius: 28,
+              borderTopRightRadius: 28,
+              ...Platform.select({
+                ios: { shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: -2 } },
+                android: { elevation: 12 },
+              }),
+            },
+            tabBarLabelStyle: { fontSize: 12, fontWeight: '600', marginBottom: 2 },
+            tabBarIcon: ({ color, size, focused }) => {
+              if (route.name === ROUTES.TABS.HUB) return null; // tab đã được ẩn
+              const iconName = tabIconMap[route.name] ?? 'circle-outline';
+              return <MaterialCommunityIcons name={iconName} color={color} size={focused ? 28 : 24} />;
+            },
+          })}
+        >
+          <Tab.Screen name={ROUTES.TABS.HOME} component={HomeScreen} options={{ title: 'Trang chủ' }} />
+          <Tab.Screen 
+            name={ROUTES.TABS.PORTAL} 
+            component={PortalScreen} 
+            options={{ 
+              title: 'Cổng',
+              headerShown: false,
+              tabBarStyle: { display: 'none' }
+            }} 
+          />
+          <Tab.Screen name={ROUTES.TABS.ACTIVITIES} component={ActivitiesList} options={{ title: 'Hoạt động' }} />
+          <Tab.Screen
+            name={ROUTES.TABS.HUB}
+            component={AcfHub}
+            options={{
+              title: 'ACF Hub',
+              tabBarButton: () => null,
+              tabBarIcon: () => null,
+              tabBarLabel: () => null,
+              tabBarItemStyle: { display: 'none' },
+            }}
+          />
+          <Tab.Screen name={ROUTES.TABS.NOTIFICATIONS} component={NotificationsList} options={{ title: 'Thông báo' }} />
+          <Tab.Screen name={ROUTES.TABS.PROFILE} component={ProfileTab} options={{ title: 'Tôi' }} />
+        </Tab.Navigator>
+
+        <DraggablePortalButton onPress={handlePortalShortcut} />
+      </View>
     </>
   );
 }
