@@ -1,4 +1,5 @@
 import { Text, TouchableOpacity } from 'react-native';
+import { useResponsiveSpacing } from '../hooks/useResponsiveSpacing';
 
 export default function TopicChip({
   label,
@@ -6,19 +7,32 @@ export default function TopicChip({
   onPress,
   color = '#DC2626',
 }) {
+  const {
+    chipPaddingHorizontal,
+    chipPaddingVertical,
+    responsiveFontSize,
+    gapSmall,
+  } = useResponsiveSpacing();
+
   return (
     <TouchableOpacity
-      className={`mr-3 rounded-full border px-4 py-2 ${
+      className={`rounded-full border ${
         active ? 'bg-red-500 border-red-500' : 'border-slate-200 bg-white'
       }`}
+      style={{
+        paddingHorizontal: chipPaddingHorizontal,
+        paddingVertical: chipPaddingVertical,
+        marginRight: gapSmall,
+      }}
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.85}
     >
       <Text
-        className={`text-sm font-medium ${
-          active ? 'text-white' : 'text-slate-600'
-        }`}
-        style={active ? undefined : { color }}
+        className={`font-medium ${active ? 'text-white' : 'text-slate-600'}`}
+        style={{
+          fontSize: responsiveFontSize(14),
+          color: active ? '#FFFFFF' : color,
+        }}
       >
         {label}
       </Text>

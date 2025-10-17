@@ -3,22 +3,57 @@ import { useNavigation } from '@react-navigation/native';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyState from '../../../components/EmptyState';
 import { useMedia } from '../../../hooks/useMedia';
+import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 import { ROUTES } from '../../../utils/constants';
 
 export default function MediaList() {
   const navigation = useNavigation();
   const { listQuery } = useMedia();
+  const {
+    width,
+    screenPadding,
+    verticalPadding,
+    statusBarOffset,
+    gapSmall,
+    gapMedium,
+    cardPadding,
+    cardRadius,
+    responsiveFontSize,
+    listContentPaddingBottom,
+  } = useResponsiveSpacing();
+
+  const tileGap = gapSmall;
+  const tileWidth = Math.max(
+    140,
+    Math.floor((width - screenPadding * 2 - tileGap) / 2),
+  );
 
   if (listQuery.isLoading) {
     return <LoadingSpinner message="Đang tải thư viện media..." />;
   }
 
   return (
-    <View className="flex-1 bg-slate-100 px-6 pt-14">
-      <Text className="mb-4 text-3xl font-bold text-slate-900">
+    <View
+      className="flex-1 bg-slate-100"
+      style={{
+        paddingHorizontal: screenPadding,
+        paddingTop: verticalPadding + statusBarOffset,
+      }}
+    >
+      <Text
+        className="font-bold text-slate-900"
+        style={{ marginBottom: gapSmall, fontSize: responsiveFontSize(28) }}
+      >
         Thư viện media
       </Text>
-      <Text className="mb-6 text-sm text-slate-500">
+      <Text
+        className="text-slate-500"
+        style={{
+          marginBottom: gapMedium,
+          fontSize: responsiveFontSize(14),
+          lineHeight: responsiveFontSize(20, { min: 18 }),
+        }}
+      >
         Tổng hợp hình ảnh và video từ cộng đồng ACF.
       </Text>
 
@@ -26,7 +61,7 @@ export default function MediaList() {
         data={listQuery.data ?? []}
         keyExtractor={(item) => item.id}
         numColumns={2}
-        columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: 16 }}
+        columnWrapperStyle={{ gap: tileGap, marginBottom: tileGap }}
         ListEmptyComponent={
           <EmptyState
             title="Media trống"
@@ -40,24 +75,42 @@ export default function MediaList() {
                 mediaId: item.id,
               })
             }
-            className="w-[48%] overflow-hidden rounded-3xl bg-white shadow-sm"
             activeOpacity={0.85}
+            className="bg-white shadow-sm"
+            style={{
+              width: tileWidth,
+              maxWidth: tileWidth,
+              borderRadius: cardRadius,
+              overflow: 'hidden',
+            }}
           >
             <Image
               source={{ uri: item.thumbnail ?? item.url }}
-              className="h-32 w-full"
+              style={{
+                width: '100%',
+                height: Math.max(140, cardRadius * 5),
+              }}
             />
-            <View className="p-3">
-              <Text className="text-sm font-medium text-slate-800">
+            <View style={{ padding: cardPadding * 0.6, gap: gapSmall / 2 }}>
+              <Text
+                className="font-medium text-slate-800"
+                style={{ fontSize: responsiveFontSize(14) }}
+              >
                 {item.title}
               </Text>
-              <Text className="mt-1 text-xs uppercase text-slate-400">
+              <Text
+                className="uppercase text-slate-400"
+                style={{ fontSize: responsiveFontSize(12, { min: 11 }) }}
+              >
                 {item.type}
               </Text>
             </View>
           </TouchableOpacity>
         )}
-        contentContainerStyle={{ paddingBottom: 160 }}
+        contentContainerStyle={{
+          paddingBottom: listContentPaddingBottom,
+          gap: tileGap,
+        }}
       />
     </View>
   );

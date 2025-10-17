@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 
 export default function ContactForm() {
   const [form, setForm] = useState({
@@ -7,6 +8,18 @@ export default function ContactForm() {
     email: '',
     message: '',
   });
+  const {
+    screenPadding,
+    verticalPadding,
+    statusBarOffset,
+    gapSmall,
+    gapMedium,
+    cardPadding,
+    cardRadius,
+    responsiveFontSize,
+    inputPaddingVertical,
+    buttonPaddingVertical,
+  } = useResponsiveSpacing();
 
   const handleChange = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -17,27 +30,57 @@ export default function ContactForm() {
   };
 
   return (
-    <View className="flex-1 bg-slate-100 px-6 pt-14">
-      <Text className="text-3xl font-bold text-slate-900">
+    <View
+      className="flex-1 bg-slate-100"
+      style={{
+        paddingHorizontal: screenPadding,
+        paddingTop: verticalPadding + statusBarOffset,
+      }}
+    >
+      <Text
+        className="font-bold text-slate-900"
+        style={{ fontSize: responsiveFontSize(28) }}
+      >
         Liên hệ ban điều hành
       </Text>
-      <Text className="mt-2 text-sm text-slate-500">
+      <Text
+        className="text-slate-500"
+        style={{
+          marginTop: gapSmall,
+          fontSize: responsiveFontSize(14),
+          lineHeight: responsiveFontSize(20, { min: 18 }),
+        }}
+      >
         Gửi thông tin phản hồi hoặc câu hỏi tới ban điều hành cộng đồng.
       </Text>
 
-      <View className="mt-8 gap-4">
+      <View style={{ marginTop: gapMedium, gap: gapMedium }}>
         <TextInput
           value={form.name}
           onChangeText={(value) => handleChange('name', value)}
           placeholder="Họ và tên"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-700"
+          className="border border-slate-200 text-slate-700"
+          style={{
+            borderRadius: cardRadius - 4,
+            paddingHorizontal: cardPadding * 0.7,
+            paddingVertical: inputPaddingVertical,
+            fontSize: responsiveFontSize(15, { min: 13 }),
+            backgroundColor: '#FFFFFF',
+          }}
         />
         <TextInput
           value={form.email}
           onChangeText={(value) => handleChange('email', value)}
           placeholder="Email"
           autoCapitalize="none"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-700"
+          className="border border-slate-200 text-slate-700"
+          style={{
+            borderRadius: cardRadius - 4,
+            paddingHorizontal: cardPadding * 0.7,
+            paddingVertical: inputPaddingVertical,
+            fontSize: responsiveFontSize(15, { min: 13 }),
+            backgroundColor: '#FFFFFF',
+          }}
         />
         <TextInput
           value={form.message}
@@ -46,16 +89,32 @@ export default function ContactForm() {
           multiline
           numberOfLines={6}
           textAlignVertical="top"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-700"
+          className="border border-slate-200 text-slate-700"
+          style={{
+            borderRadius: cardRadius - 4,
+            paddingHorizontal: cardPadding * 0.7,
+            paddingVertical: inputPaddingVertical,
+            fontSize: responsiveFontSize(15, { min: 13 }),
+            backgroundColor: '#FFFFFF',
+            minHeight: cardPadding * 5,
+          }}
         />
       </View>
 
       <TouchableOpacity
         onPress={handleSubmit}
-        className="mt-6 rounded-2xl bg-red-500 py-4"
+        className="bg-red-500"
         activeOpacity={0.85}
+        style={{
+          marginTop: gapMedium,
+          borderRadius: cardRadius - 2,
+          paddingVertical: buttonPaddingVertical,
+        }}
       >
-        <Text className="text-center text-base font-semibold text-white">
+        <Text
+          className="text-center font-semibold text-white"
+          style={{ fontSize: responsiveFontSize(16) }}
+        >
           Gửi liên hệ
         </Text>
       </TouchableOpacity>

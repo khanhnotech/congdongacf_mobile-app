@@ -26,6 +26,7 @@ import NotificationsList from '../screens/ACF/Notifications/NotificationsList';
 import ProfileTab from '../screens/ACF/Profile/ProfileTab';
 import { ROUTES } from '../utils/constants';
 import { useAuth } from '../hooks/useAuth';
+import { useResponsiveSpacing } from '../hooks/useResponsiveSpacing';
 
 const Tab = createBottomTabNavigator();
 
@@ -78,6 +79,21 @@ function AppHeader({
   // ? dùng safe-area top để không bị đè bởi status bar (edge-to-edge)
   const insets = useSafeAreaInsets();
   const padTop = Math.max(insets.top, 8);
+  const spacing = useResponsiveSpacing();
+  const {
+    screenPadding,
+    verticalPadding,
+    gapSmall,
+    gapMedium,
+    responsiveFontSize,
+    cardRadius,
+    chipPaddingHorizontal,
+    chipPaddingVertical,
+    responsiveSpacing,
+  } = spacing;
+  const gapLarge = spacing.gapLarge ?? gapMedium + 6;
+  const actionSize = responsiveSpacing(46, { min: 40, max: 52 });
+  const tickerHeight = responsiveSpacing(38, { min: 32, max: 46 });
   const tickerMessage = 'Sự kiện: Hệ thống sẽ cập nhật sớm.';
   const timestamp = useMemo(
     () =>
@@ -124,59 +140,117 @@ function AppHeader({
 
   const renderTickerContent = (shouldMeasure = false) => (
     <View
-      className="flex-row items-center gap-3 pr-10"
+      className="flex-row items-center"
+      style={{ gap: gapSmall, paddingRight: gapMedium * 2 }}
       onLayout={
         shouldMeasure ? (event) => setContentWidth(event.nativeEvent.layout.width) : undefined
       }
     >
-      <MaterialCommunityIcons name="bullhorn" size={16} color="#991B1B" />
-      <Text className="text-sm font-semibold text-red-700">{tickerMessage}</Text>
-      <View className="flex-row items-center gap-2 rounded-full bg-red-500 px-3 py-1">
-        <MaterialCommunityIcons name="clock-outline" size={14} color="#FFFFFF" />
-        <Text className="text-xs font-semibold text-white">{timestamp}</Text>
+      <MaterialCommunityIcons name="bullhorn" size={responsiveFontSize(16)} color="#991B1B" />
+      <Text
+        className="font-semibold text-red-700"
+        style={{ fontSize: responsiveFontSize(13) }}
+      >
+        {tickerMessage}
+      </Text>
+      <View
+        className="flex-row items-center rounded-full bg-red-500"
+        style={{
+          gap: gapSmall / 1.4,
+          paddingHorizontal: chipPaddingHorizontal,
+          paddingVertical: chipPaddingVertical / 1.6,
+        }}
+      >
+        <MaterialCommunityIcons name="clock-outline" size={responsiveFontSize(14)} color="#FFFFFF" />
+        <Text
+          className="font-semibold text-white"
+          style={{ fontSize: responsiveFontSize(12) }}
+        >
+          {timestamp}
+        </Text>
       </View>
     </View>
   );
 
   return (
     <View
-      className="bg-white px-6 pb-4 shadow-sm"
-      style={{ paddingTop: padTop + 6 }}
+      className="bg-white shadow-sm"
+      style={{
+        paddingTop: padTop + gapSmall,
+        paddingBottom: verticalPadding * 0.6,
+        paddingHorizontal: screenPadding,
+      }}
     >
-      <View className="flex-row items-center justify-between">
+      <View
+        className="flex-row items-center justify-between"
+        style={{ gap: gapSmall }}
+      >
         <TouchableOpacity
           onPress={onOpenMenu}
-          className="mr-3 h-11 w-11 items-center justify-center rounded-full bg-slate-100"
+          className="items-center justify-center bg-slate-100"
           activeOpacity={0.8}
+          style={{
+            height: actionSize,
+            width: actionSize,
+            borderRadius: actionSize / 2,
+          }}
         >
-          <MaterialCommunityIcons name="menu" size={22} color="#1E293B" />
+          <MaterialCommunityIcons name="menu" size={responsiveFontSize(22)} color="#1E293B" />
         </TouchableOpacity>
 
-        <View className="flex-1">
-          <Text className="text-center text-xl font-semibold text-slate-900">{title}</Text>
+        <View className="flex-1" style={{ paddingHorizontal: gapSmall }}>
+          <Text
+            className="text-center font-semibold text-slate-900"
+            style={{ fontSize: responsiveFontSize(20) }}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
         </View>
 
-        <View className="ml-3 flex-row items-center">
+        <View className="flex-row items-center">
           <TouchableOpacity
             onPress={onSearch}
-            className="mr-2 h-11 w-11 items-center justify-center rounded-full bg-slate-100"
+            className="items-center justify-center bg-slate-100"
             activeOpacity={0.8}
+            style={{
+              height: actionSize,
+              width: actionSize,
+              borderRadius: actionSize / 2,
+              marginRight: gapSmall / 1.2,
+            }}
           >
-            <MaterialCommunityIcons name="magnify" size={22} color="#1E293B" />
+            <MaterialCommunityIcons name="magnify" size={responsiveFontSize(22)} color="#1E293B" />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onAvatarPress}
             activeOpacity={0.9}
-            className="h-11 w-11 items-center justify-center rounded-full"
-            style={{ backgroundColor: avatarColor }}
+            className="items-center justify-center"
+            style={{
+              backgroundColor: avatarColor,
+              height: actionSize,
+              width: actionSize,
+              borderRadius: actionSize / 2,
+            }}
           >
-            <Text className="text-base font-semibold text-white">{avatarInitials ?? 'A'}</Text>
+            <Text
+              className="font-semibold text-white"
+              style={{ fontSize: responsiveFontSize(14) }}
+            >
+              {avatarInitials ?? 'A'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <View
-        className="mt-3 h-9 flex-row items-center overflow-hidden rounded-full bg-red-100 px-4"
+        className="flex-row items-center overflow-hidden bg-red-100"
+        style={{
+          marginTop: gapMedium,
+          height: tickerHeight,
+          borderRadius: cardRadius,
+          paddingHorizontal: chipPaddingHorizontal,
+        }}
         onLayout={(event) => setTickerWidth(event.nativeEvent.layout.width)}
       >
         <Animated.View
@@ -187,7 +261,7 @@ function AppHeader({
           }}
         >
           {renderTickerContent(true)}
-          <View className="pl-10">{renderTickerContent()}</View>
+          <View style={{ paddingLeft: gapMedium * 2 }}>{renderTickerContent()}</View>
         </Animated.View>
       </View>
     </View>
@@ -196,6 +270,18 @@ function AppHeader({
 
 function MenuDrawer({ visible, onClose, onSelect }) {
   const insets = useSafeAreaInsets();
+  const spacing = useResponsiveSpacing();
+  const {
+    screenPadding,
+    verticalPadding,
+    gapSmall,
+    gapMedium,
+    cardPadding,
+    cardRadius,
+    responsiveFontSize,
+    listContentPaddingBottom,
+  } = spacing;
+  const gapLarge = spacing.gapLarge ?? gapMedium + 6;
   return (
     <Modal
       animationType="fade"
@@ -204,43 +290,81 @@ function MenuDrawer({ visible, onClose, onSelect }) {
       onRequestClose={onClose}
     >
       <View
-        className="flex-1 bg-white px-6 pb-24"
-        style={{ paddingTop: Math.max(insets.top, 10) }}
+        className="flex-1 bg-white"
+        style={{
+          paddingTop: Math.max(insets.top, verticalPadding),
+          paddingHorizontal: screenPadding,
+          paddingBottom: verticalPadding,
+        }}
       >
-        <View className="flex-row items-center justify-between">
-          <Text className="text-2xl font-semibold text-slate-900">Menu</Text>
-          <TouchableOpacity onPress={onClose} className="p-2">
-            <MaterialCommunityIcons name="close" size={22} color="#475569" />
+        <View
+          className="flex-row items-center justify-between"
+          style={{ marginBottom: gapMedium }}
+        >
+          <Text
+            className="font-semibold text-slate-900"
+            style={{ fontSize: responsiveFontSize(24) }}
+          >
+            Menu
+          </Text>
+          <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={{ padding: gapSmall }}>
+            <MaterialCommunityIcons name="close" size={responsiveFontSize(22)} color="#475569" />
           </TouchableOpacity>
         </View>
 
-        <View className="flex-1 mt-8">
+        <View className="flex-1">
           <ScrollView
-            className="flex-1"
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 24 }}
+            contentContainerStyle={{ paddingBottom: listContentPaddingBottom }}
           >
-            <View className="gap-4">
+            <View style={{ gap: gapMedium }}>
               {menuItems.map((item) => (
                 <TouchableOpacity
                   key={item.label}
                   onPress={() => onSelect(item.action)}
-                  className="flex-row items-center gap-4 rounded-2xl px-3 py-3"
                   activeOpacity={0.85}
+                  className="flex-row items-center"
+                  style={{
+                    gap: gapSmall,
+                    borderRadius: cardRadius,
+                    paddingHorizontal: cardPadding * 0.6,
+                    paddingVertical: cardPadding * 0.5,
+                    backgroundColor: '#FFFFFF',
+                  }}
                 >
-                  <MaterialCommunityIcons name={item.icon} size={22} color="#0F172A" />
-                  <Text className="flex-1 text-base font-medium text-slate-800">{item.label}</Text>
-                  <MaterialCommunityIcons name="chevron-right" size={22} color="#94A3B8" />
+                  <MaterialCommunityIcons name={item.icon} size={responsiveFontSize(22)} color="#0F172A" />
+                  <Text
+                    className="flex-1 font-medium text-slate-800"
+                    style={{ fontSize: responsiveFontSize(16) }}
+                  >
+                    {item.label}
+                  </Text>
+                  <MaterialCommunityIcons name="chevron-right" size={responsiveFontSize(22)} color="#94A3B8" />
                 </TouchableOpacity>
               ))}
             </View>
           </ScrollView>
 
-          <View className="mt-6 border-t border-slate-200 pt-6 gap-4">
+          <View
+            className="border-t border-slate-200"
+            style={{ marginTop: gapLarge, paddingTop: gapMedium, gap: gapSmall }}
+          >
             {menuFooter.map((item) => (
-              <View key={item.label} className="flex-row items-center gap-3 px-3">
-                <MaterialCommunityIcons name={item.icon} size={20} color="#94A3B8" />
-                <Text className="text-sm text-slate-500">{item.label}</Text>
+              <View
+                key={item.label}
+                className="flex-row items-center"
+                style={{
+                  gap: gapSmall,
+                  paddingHorizontal: cardPadding * 0.4,
+                }}
+              >
+                <MaterialCommunityIcons name={item.icon} size={responsiveFontSize(20)} color="#94A3B8" />
+                <Text
+                  className="text-slate-500"
+                  style={{ fontSize: responsiveFontSize(14) }}
+                >
+                  {item.label}
+                </Text>
               </View>
             ))}
           </View>

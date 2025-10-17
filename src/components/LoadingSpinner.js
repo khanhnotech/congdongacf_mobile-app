@@ -1,10 +1,25 @@
 import { ActivityIndicator, Text, View } from 'react-native';
+import { useResponsiveSpacing } from '../hooks/useResponsiveSpacing';
 
 export default function LoadingSpinner({ message = 'Đang tải dữ liệu...' }) {
+  const {
+    gapSmall,
+    cardPadding,
+    responsiveFontSize,
+  } = useResponsiveSpacing();
+
   return (
-    <View className="flex-1 items-center justify-center gap-2 bg-white p-6">
+    <View
+      className="flex-1 items-center justify-center bg-white"
+      style={{ gap: gapSmall, padding: cardPadding }}
+    >
       <ActivityIndicator size="large" color="#DC2626" />
-      <Text className="text-sm text-slate-500">{message}</Text>
+      <Text
+        className="text-slate-500"
+        style={{ fontSize: responsiveFontSize(14) }}
+      >
+        {message}
+      </Text>
     </View>
   );
 }

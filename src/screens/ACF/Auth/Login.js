@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../../hooks/useAuth';
+import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 import { ROUTES } from '../../../utils/constants';
 
 export default function Login() {
@@ -10,6 +11,18 @@ export default function Login() {
   const [email, setEmail] = useState('demo@acf-community.app');
   const [password, setPassword] = useState('123456');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    screenPadding,
+    verticalPadding,
+    contentMaxWidth,
+    cardPadding,
+    cardRadius,
+    gapSmall,
+    gapMedium,
+    responsiveFontSize,
+    inputPaddingVertical,
+    buttonPaddingVertical,
+  } = useResponsiveSpacing();
 
   const handleLogin = async () => {
     try {
@@ -27,18 +40,49 @@ export default function Login() {
   };
 
   return (
-    <View className="flex-1 justify-center bg-red-600 px-6">
-      <View className="rounded-3xl bg-white p-8">
-        <Text className="text-3xl font-bold text-slate-900">
+    <View
+      className="flex-1 justify-center bg-red-600"
+      style={{
+        paddingHorizontal: screenPadding,
+        paddingVertical: verticalPadding,
+      }}
+    >
+      <View
+        className="bg-white shadow-sm"
+        style={{
+          padding: cardPadding,
+          borderRadius: cardRadius,
+          width: '100%',
+          maxWidth: contentMaxWidth,
+          alignSelf: 'center',
+        }}
+      >
+        <Text
+          className="font-bold text-slate-900"
+          style={{ fontSize: responsiveFontSize(28) }}
+        >
           Chào bạn quay lại!
         </Text>
-        <Text className="mt-2 text-sm text-slate-500">
+        <Text
+          className="text-slate-500"
+          style={{
+            marginTop: gapSmall,
+            fontSize: responsiveFontSize(14),
+            lineHeight: responsiveFontSize(20, { min: 18 }),
+          }}
+        >
           Đăng nhập để tiếp tục tham gia cộng đồng ACF.
         </Text>
 
-        <View className="mt-6 gap-4">
+        <View style={{ marginTop: gapMedium, gap: gapMedium }}>
           <View>
-            <Text className="mb-2 text-xs font-semibold uppercase text-slate-500">
+            <Text
+              className="font-semibold uppercase text-slate-500"
+              style={{
+                fontSize: responsiveFontSize(11, { min: 10 }),
+                marginBottom: gapSmall / 1.3,
+              }}
+            >
               Email
             </Text>
             <TextInput
@@ -47,11 +91,24 @@ export default function Login() {
               autoCapitalize="none"
               keyboardType="email-address"
               placeholder="you@example.com"
-              className="rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-700"
+              className="border border-slate-200 text-slate-700"
+              style={{
+                borderRadius: cardRadius - 4,
+                paddingHorizontal: cardPadding * 0.7,
+                paddingVertical: inputPaddingVertical,
+                fontSize: responsiveFontSize(15, { min: 13 }),
+                backgroundColor: '#FFFFFF',
+              }}
             />
           </View>
           <View>
-            <Text className="mb-2 text-xs font-semibold uppercase text-slate-500">
+            <Text
+              className="font-semibold uppercase text-slate-500"
+              style={{
+                fontSize: responsiveFontSize(11, { min: 10 }),
+                marginBottom: gapSmall / 1.3,
+              }}
+            >
               Mật khẩu
             </Text>
             <TextInput
@@ -59,7 +116,14 @@ export default function Login() {
               onChangeText={setPassword}
               secureTextEntry
               placeholder="••••••"
-              className="rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-700"
+              className="border border-slate-200 text-slate-700"
+              style={{
+                borderRadius: cardRadius - 4,
+                paddingHorizontal: cardPadding * 0.7,
+                paddingVertical: inputPaddingVertical,
+                fontSize: responsiveFontSize(15, { min: 13 }),
+                backgroundColor: '#FFFFFF',
+              }}
             />
           </View>
 
@@ -67,7 +131,10 @@ export default function Login() {
             <TouchableOpacity
               onPress={() => navigation.navigate(ROUTES.AUTH.FORGOT_PASSWORD)}
             >
-              <Text className="text-sm font-medium text-red-600">
+              <Text
+                className="font-medium text-red-600"
+                style={{ fontSize: responsiveFontSize(14, { min: 13 }) }}
+              >
                 Quên mật khẩu?
               </Text>
             </TouchableOpacity>
@@ -76,22 +143,33 @@ export default function Login() {
           <TouchableOpacity
             onPress={handleLogin}
             disabled={isSubmitting}
-            className={`rounded-2xl bg-red-500 py-4 ${
-              isSubmitting ? 'opacity-60' : ''
-            }`}
+            className={`bg-red-500 ${isSubmitting ? 'opacity-60' : ''}`}
+            style={{
+              borderRadius: cardRadius - 2,
+              paddingVertical: buttonPaddingVertical,
+            }}
           >
-            <Text className="text-center text-base font-semibold text-white">
+            <Text
+              className="text-center font-semibold text-white"
+              style={{ fontSize: responsiveFontSize(16) }}
+            >
               {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => navigation.navigate(ROUTES.AUTH.REGISTER)}
-            className="py-2"
+            style={{ paddingVertical: gapSmall }}
           >
-            <Text className="text-center text-sm text-slate-500">
+            <Text
+              className="text-center text-slate-500"
+              style={{ fontSize: responsiveFontSize(14, { min: 13 }) }}
+            >
               Chưa có tài khoản?{' '}
-              <Text className="font-semibold text-red-500">
+              <Text
+                className="font-semibold text-red-500"
+                style={{ fontSize: responsiveFontSize(14, { min: 13 }) }}
+              >
                 Đăng ký ngay
               </Text>
             </Text>

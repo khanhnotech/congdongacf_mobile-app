@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { usePosts } from '../../../hooks/usePosts';
+import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 
 export default function CreatePost() {
   const navigation = useNavigation();
@@ -11,6 +12,20 @@ export default function CreatePost() {
     excerpt: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const spacing = useResponsiveSpacing();
+  const {
+    screenPadding,
+    verticalPadding,
+    statusBarOffset,
+    gapSmall,
+    gapMedium,
+    cardPadding,
+    cardRadius,
+    responsiveFontSize,
+    inputPaddingVertical,
+    buttonPaddingVertical,
+  } = spacing;
+  const gapLarge = spacing.gapLarge ?? gapMedium * 1.5;
 
   const handleChange = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -30,20 +45,45 @@ export default function CreatePost() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-slate-100 px-6 pt-14">
-      <Text className="text-3xl font-bold text-slate-900">
+    <ScrollView
+      className="flex-1 bg-slate-100"
+      contentContainerStyle={{
+        paddingHorizontal: screenPadding,
+        paddingTop: verticalPadding + statusBarOffset,
+        paddingBottom: gapLarge,
+        gap: gapMedium,
+      }}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text
+        className="font-bold text-slate-900"
+        style={{ fontSize: responsiveFontSize(28) }}
+      >
         Tạo bài viết mới
       </Text>
-      <Text className="mt-2 text-sm text-slate-500">
+      <Text
+        className="text-slate-500"
+        style={{
+          fontSize: responsiveFontSize(14),
+          lineHeight: responsiveFontSize(20, { min: 18 }),
+        }}
+      >
         Chia sẻ thông tin, câu chuyện hoặc hoạt động ý nghĩa cùng cộng đồng.
       </Text>
 
-      <View className="mt-8 gap-4">
+      <View style={{ marginTop: gapMedium, gap: gapMedium }}>
         <TextInput
           value={form.title}
           onChangeText={(value) => handleChange('title', value)}
           placeholder="Tiêu đề"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-700"
+          className="border border-slate-200 text-slate-700"
+          style={{
+            borderRadius: cardRadius - 4,
+            paddingHorizontal: cardPadding * 0.7,
+            paddingVertical: inputPaddingVertical,
+            fontSize: responsiveFontSize(15, { min: 13 }),
+            backgroundColor: '#FFFFFF',
+          }}
         />
         <TextInput
           value={form.excerpt}
@@ -52,19 +92,33 @@ export default function CreatePost() {
           multiline
           numberOfLines={5}
           textAlignVertical="top"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-700"
+          className="border border-slate-200 text-slate-700"
+          style={{
+            borderRadius: cardRadius - 4,
+            paddingHorizontal: cardPadding * 0.7,
+            paddingVertical: inputPaddingVertical,
+            fontSize: responsiveFontSize(15, { min: 13 }),
+            backgroundColor: '#FFFFFF',
+            minHeight: cardPadding * 5,
+          }}
         />
       </View>
 
       <TouchableOpacity
         onPress={handleSubmit}
         disabled={isSubmitting}
-        className={`mt-6 rounded-2xl bg-red-500 py-4 ${
-          isSubmitting ? 'opacity-60' : ''
-        }`}
+        className={`bg-red-500 ${isSubmitting ? 'opacity-60' : ''}`}
         activeOpacity={0.85}
+        style={{
+          marginTop: gapMedium,
+          borderRadius: cardRadius - 2,
+          paddingVertical: buttonPaddingVertical,
+        }}
       >
-        <Text className="text-center text-base font-semibold text-white">
+        <Text
+          className="text-center font-semibold text-white"
+          style={{ fontSize: responsiveFontSize(16) }}
+        >
           {isSubmitting ? 'Đang đăng...' : 'Đăng bài'}
         </Text>
       </TouchableOpacity>

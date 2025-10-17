@@ -3,25 +3,55 @@ import { useNavigation } from '@react-navigation/native';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyState from '../../../components/EmptyState';
 import { useActivities } from '../../../hooks/useActivities';
+import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 import { formatDate } from '../../../utils/format';
 import { ROUTES } from '../../../utils/constants';
 
 export default function ActivitiesList() {
   const navigation = useNavigation();
   const { listQuery } = useActivities();
+  const {
+    screenPadding,
+    verticalPadding,
+    statusBarOffset,
+    gapSmall,
+    gapMedium,
+    cardPadding,
+    cardRadius,
+    responsiveFontSize,
+    listContentPaddingBottom,
+  } = useResponsiveSpacing();
 
   if (listQuery.isLoading) {
     return <LoadingSpinner message="Đang tải hoạt động..." />;
   }
 
   return (
-    <View className="flex-1 bg-slate-100 px-6 pt-14">
-      <Text className="mb-4 text-3xl font-bold text-slate-900">
+    <View
+      className="flex-1 bg-slate-100"
+      style={{
+        paddingHorizontal: screenPadding,
+        paddingTop: verticalPadding + statusBarOffset,
+      }}
+    >
+      <Text
+        className="font-bold text-slate-900"
+        style={{
+          marginBottom: gapSmall,
+          fontSize: responsiveFontSize(28),
+        }}
+      >
         Hoạt động cộng đồng
       </Text>
-      <Text className="mb-6 text-sm text-slate-500">
-        Danh sách các sự kiện đang và sắp diễn ra. Chọn hoạt động để xem chi
-        tiết.
+      <Text
+        className="text-slate-500"
+        style={{
+          marginBottom: gapMedium,
+          fontSize: responsiveFontSize(14),
+          lineHeight: responsiveFontSize(20, { min: 18 }),
+        }}
+      >
+        Danh sách các sự kiện đang và sắp diễn ra. Chọn hoạt động để xem chi tiết.
       </Text>
 
       <FlatList
@@ -30,7 +60,7 @@ export default function ActivitiesList() {
         ListEmptyComponent={
           <EmptyState title="Chưa có hoạt động" description="Các hoạt động sẽ được cập nhật liên tục." />
         }
-        ItemSeparatorComponent={() => <View className="h-4" />}
+        ItemSeparatorComponent={() => <View style={{ height: gapMedium }} />}
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() =>
@@ -39,21 +69,49 @@ export default function ActivitiesList() {
               })
             }
             activeOpacity={0.85}
-            className="rounded-3xl bg-white p-5 shadow-sm"
+            className="bg-white shadow-sm"
+            style={{
+              borderRadius: cardRadius,
+              padding: cardPadding,
+            }}
           >
-            <Text className="text-sm uppercase tracking-wider text-red-600">
+            <Text
+              className="uppercase tracking-wider text-red-600"
+              style={{ fontSize: responsiveFontSize(12, { min: 11 }) }}
+            >
               {formatDate(item.date)}
             </Text>
-            <Text className="mt-1 text-xl font-semibold text-slate-900">
+            <Text
+              className="font-semibold text-slate-900"
+              style={{
+                marginTop: gapSmall / 2,
+                fontSize: responsiveFontSize(20),
+              }}
+            >
               {item.title}
             </Text>
-            <Text className="mt-2 text-sm text-slate-500">{item.summary}</Text>
-            <Text className="mt-3 text-xs font-medium uppercase text-slate-400">
+            <Text
+              className="text-slate-500"
+              style={{
+                marginTop: gapSmall,
+                fontSize: responsiveFontSize(14),
+                lineHeight: responsiveFontSize(20, { min: 18 }),
+              }}
+            >
+              {item.summary}
+            </Text>
+            <Text
+              className="font-medium uppercase text-slate-400"
+              style={{
+                marginTop: gapSmall,
+                fontSize: responsiveFontSize(11, { min: 10 }),
+              }}
+            >
               {item.location}
             </Text>
           </TouchableOpacity>
         )}
-        contentContainerStyle={{ paddingBottom: 160 }}
+        contentContainerStyle={{ paddingBottom: listContentPaddingBottom, gap: gapMedium }}
       />
     </View>
   );

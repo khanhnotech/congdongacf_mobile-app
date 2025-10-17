@@ -2,6 +2,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../../hooks/useAuth';
+import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 import { ROUTES } from '../../../utils/constants';
 import MyProfile from './MyProfile';
 
@@ -35,61 +36,108 @@ const authActions = [
 export default function ProfileTab() {
   const navigation = useNavigation();
   const { user } = useAuth();
+  const {
+    screenPadding,
+    verticalPadding,
+    statusBarOffset,
+    gapSmall,
+    gapMedium,
+    cardPadding,
+    cardRadius,
+    responsiveFontSize,
+    responsiveSpacing,
+    listContentPaddingBottom,
+  } = useResponsiveSpacing();
+  const actionIconSize = responsiveSpacing(48, { min: 44, max: 60 });
 
   if (user) {
     return <MyProfile />;
   }
 
   return (
-    <ScrollView className="flex-1 bg-white px-6 pt-14 pb-24">
-      <View className="items-center">
-        <View className="h-24 w-24 items-center justify-center rounded-full bg-red-100">
-          <MaterialCommunityIcons name="account-circle" size={56} color="#DC2626" />
+    <ScrollView
+      className="flex-1 bg-white"
+      contentContainerStyle={{
+        paddingHorizontal: screenPadding,
+        paddingTop: verticalPadding + statusBarOffset,
+        paddingBottom: listContentPaddingBottom,
+        gap: gapMedium,
+      }}
+      showsVerticalScrollIndicator={false}
+    >
+      <View className="items-center" style={{ gap: gapSmall }}>
+        <View
+          className="items-center justify-center bg-red-100"
+          style={{
+            height: 96,
+            width: 96,
+            borderRadius: 48,
+          }}
+        >
+          <MaterialCommunityIcons name="account-circle" size={responsiveFontSize(52)} color="#DC2626" />
         </View>
-        <Text className="mt-6 text-3xl font-bold text-slate-900">
+        <Text
+          className="font-bold text-slate-900"
+          style={{ marginTop: gapSmall, fontSize: responsiveFontSize(28) }}
+        >
           Xin chào!
         </Text>
-        <Text className="mt-2 text-center text-sm leading-6 text-slate-500">
+        <Text
+          className="text-center text-slate-500"
+          style={{
+            marginTop: gapSmall / 2,
+            fontSize: responsiveFontSize(14),
+            lineHeight: responsiveFontSize(20, { min: 18 }),
+          }}
+        >
           Bạn cần đăng nhập để xem hồ sơ cá nhân, theo dõi hoạt động và tham gia cộng đồng ACF.
         </Text>
       </View>
 
-      <View className="mt-10 gap-4">
+      <View style={{ marginTop: gapMedium, gap: gapMedium }}>
         {authActions.map((action) => {
           const isPrimary = action.variant === 'primary';
           return (
             <TouchableOpacity
               key={action.key}
               onPress={() => navigation.navigate(action.route)}
-              className={`flex-row items-center justify-between rounded-3xl px-5 py-5 ${
-                isPrimary ? 'bg-red-500' : 'bg-red-50 border border-red-100'
-              }`}
               activeOpacity={0.85}
+              className={`flex-row items-center justify-between ${isPrimary ? 'bg-red-500' : 'bg-red-50 border border-red-100'}`}
+              style={{
+                borderRadius: cardRadius,
+                paddingHorizontal: cardPadding * 0.8,
+                paddingVertical: cardPadding * 0.7,
+              }}
             >
-              <View className="flex-1 pr-4">
+              <View className="flex-1" style={{ paddingRight: gapSmall }}>
                 <Text
-                  className={`text-lg font-semibold ${
-                    isPrimary ? 'text-white' : 'text-slate-900'
-                  }`}
+                  className={`font-semibold ${isPrimary ? 'text-white' : 'text-slate-900'}`}
+                  style={{ fontSize: responsiveFontSize(18) }}
                 >
                   {action.label}
                 </Text>
                 <Text
-                  className={`mt-1 text-sm ${
-                    isPrimary ? 'text-white/80' : 'text-slate-600'
-                  }`}
+                  className={`${isPrimary ? 'text-white/80' : 'text-slate-600'}`}
+                  style={{
+                    marginTop: gapSmall / 2,
+                    fontSize: responsiveFontSize(14),
+                    lineHeight: responsiveFontSize(20, { min: 18 }),
+                  }}
                 >
                   {action.description}
                 </Text>
               </View>
               <View
-                className={`h-12 w-12 items-center justify-center rounded-full ${
-                  isPrimary ? 'bg-white/15' : 'bg-white'
-                }`}
+                className={`items-center justify-center ${isPrimary ? 'bg-white/15' : 'bg-white'}`}
+                style={{
+                  height: actionIconSize,
+                  width: actionIconSize,
+                  borderRadius: actionIconSize / 2,
+                }}
               >
                 <MaterialCommunityIcons
                   name={action.icon}
-                  size={24}
+                  size={responsiveFontSize(22)}
                   color={isPrimary ? '#FFFFFF' : '#DC2626'}
                 />
               </View>

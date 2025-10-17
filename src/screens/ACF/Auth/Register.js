@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../../hooks/useAuth';
+import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 import { ROUTES } from '../../../utils/constants';
 
 export default function Register() {
@@ -14,6 +15,18 @@ export default function Register() {
     password: '123456',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    screenPadding,
+    verticalPadding,
+    contentMaxWidth,
+    cardPadding,
+    cardRadius,
+    gapSmall,
+    gapMedium,
+    responsiveFontSize,
+    inputPaddingVertical,
+    buttonPaddingVertical,
+  } = useResponsiveSpacing();
 
   const handleChange = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -35,27 +48,66 @@ export default function Register() {
   };
 
   return (
-    <View className="flex-1 justify-center bg-red-600 px-6">
-      <View className="rounded-3xl bg-white p-8">
-        <Text className="text-3xl font-bold text-slate-900">
+    <View
+      className="flex-1 justify-center bg-red-600"
+      style={{
+        paddingHorizontal: screenPadding,
+        paddingVertical: verticalPadding,
+      }}
+    >
+      <View
+        className="bg-white shadow-sm"
+        style={{
+          padding: cardPadding,
+          borderRadius: cardRadius,
+          width: '100%',
+          maxWidth: contentMaxWidth,
+          alignSelf: 'center',
+        }}
+      >
+        <Text
+          className="font-bold text-slate-900"
+          style={{ fontSize: responsiveFontSize(28) }}
+        >
           Tạo tài khoản mới
         </Text>
-        <Text className="mt-2 text-sm text-slate-500">
+        <Text
+          className="text-slate-500"
+          style={{
+            marginTop: gapSmall,
+            fontSize: responsiveFontSize(14),
+            lineHeight: responsiveFontSize(20, { min: 18 }),
+          }}
+        >
           Hãy bắt đầu hành trình đóng góp cho cộng đồng.
         </Text>
 
-        <View className="mt-6 gap-4">
+        <View style={{ marginTop: gapMedium, gap: gapMedium }}>
           <TextInput
             value={form.firstName}
             onChangeText={(value) => handleChange('firstName', value)}
             placeholder="Họ"
-            className="rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-700"
+            className="border border-slate-200 text-slate-700"
+            style={{
+              borderRadius: cardRadius - 4,
+              paddingHorizontal: cardPadding * 0.7,
+              paddingVertical: inputPaddingVertical,
+              fontSize: responsiveFontSize(15, { min: 13 }),
+              backgroundColor: '#FFFFFF',
+            }}
           />
           <TextInput
             value={form.lastName}
             onChangeText={(value) => handleChange('lastName', value)}
             placeholder="Tên"
-            className="rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-700"
+            className="border border-slate-200 text-slate-700"
+            style={{
+              borderRadius: cardRadius - 4,
+              paddingHorizontal: cardPadding * 0.7,
+              paddingVertical: inputPaddingVertical,
+              fontSize: responsiveFontSize(15, { min: 13 }),
+              backgroundColor: '#FFFFFF',
+            }}
           />
           <TextInput
             value={form.email}
@@ -63,35 +115,60 @@ export default function Register() {
             autoCapitalize="none"
             keyboardType="email-address"
             placeholder="you@example.com"
-            className="rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-700"
+            className="border border-slate-200 text-slate-700"
+            style={{
+              borderRadius: cardRadius - 4,
+              paddingHorizontal: cardPadding * 0.7,
+              paddingVertical: inputPaddingVertical,
+              fontSize: responsiveFontSize(15, { min: 13 }),
+              backgroundColor: '#FFFFFF',
+            }}
           />
           <TextInput
             value={form.password}
             onChangeText={(value) => handleChange('password', value)}
             secureTextEntry
             placeholder="Mật khẩu"
-            className="rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-700"
+            className="border border-slate-200 text-slate-700"
+            style={{
+              borderRadius: cardRadius - 4,
+              paddingHorizontal: cardPadding * 0.7,
+              paddingVertical: inputPaddingVertical,
+              fontSize: responsiveFontSize(15, { min: 13 }),
+              backgroundColor: '#FFFFFF',
+            }}
           />
 
           <TouchableOpacity
             onPress={handleRegister}
             disabled={isSubmitting}
-            className={`rounded-2xl bg-slate-900 py-4 ${
-              isSubmitting ? 'opacity-60' : ''
-            }`}
+            className={`bg-slate-900 ${isSubmitting ? 'opacity-60' : ''}`}
+            style={{
+              borderRadius: cardRadius - 2,
+              paddingVertical: buttonPaddingVertical,
+            }}
           >
-            <Text className="text-center text-base font-semibold text-white">
+            <Text
+              className="text-center font-semibold text-white"
+              style={{ fontSize: responsiveFontSize(16) }}
+            >
               {isSubmitting ? 'Đang đăng ký...' : 'Đăng ký'}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            className="py-2"
+            style={{ paddingVertical: gapSmall }}
           >
-            <Text className="text-center text-sm text-slate-500">
+            <Text
+              className="text-center text-slate-500"
+              style={{ fontSize: responsiveFontSize(14, { min: 13 }) }}
+            >
               Đã có tài khoản?{' '}
-              <Text className="font-semibold text-red-600">
+              <Text
+                className="font-semibold text-red-600"
+                style={{ fontSize: responsiveFontSize(14, { min: 13 }) }}
+              >
                 Đăng nhập ngay
               </Text>
             </Text>
