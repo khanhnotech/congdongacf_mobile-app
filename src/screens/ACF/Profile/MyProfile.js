@@ -7,7 +7,7 @@ import { formatName } from '../../../utils/format';
 
 export default function MyProfile() {
   const navigation = useNavigation();
-  const { user, logout } = useAuth();
+  const { user, logout, logoutStatus } = useAuth();
   const {
     screenPadding,
     verticalPadding,
@@ -112,19 +112,21 @@ export default function MyProfile() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={logout}
+            onPress={() => logout().catch((error) => console.warn('Logout failed', error))}
             activeOpacity={0.85}
             className="flex-1 border border-slate-200"
+            disabled={logoutStatus === 'pending'}
             style={{
               borderRadius: cardRadius - 4,
               paddingVertical: buttonPaddingVertical,
+              opacity: logoutStatus === 'pending' ? 0.6 : 1,
             }}
           >
             <Text
               className="text-center font-semibold text-slate-600"
               style={{ fontSize: responsiveFontSize(16) }}
             >
-              Đăng xuất
+              {logoutStatus === 'pending' ? 'Đang đăng xuất...' : 'Đăng xuất'}
             </Text>
           </TouchableOpacity>
         </View>

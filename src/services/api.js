@@ -1,11 +1,22 @@
 const { EXPO_PUBLIC_API_BASE } = process.env;
 
-const API_BASE_URL = EXPO_PUBLIC_API_BASE ?? 'http://localhost:5000/api';
+const normalizeBaseUrl = (value) => {
+  if (!value) return '';
+  return String(value).trim().replace(/\/+$/, '');
+};
+
+const API_BASE_URL =
+  normalizeBaseUrl(EXPO_PUBLIC_API_BASE) || 'http://192.168.1.15:3000';
 
 const buildUrl = (path) => {
+  if (!API_BASE_URL) {
+    throw new Error(
+      'API base URL is not configured. Set EXPO_PUBLIC_API_BASE in your environment.',
+    );
+  }
   if (!path) return API_BASE_URL;
   if (path.startsWith('http')) return path;
-  return `${API_BASE_URL.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+  return `${API_BASE_URL}/${path.replace(/^\//, '')}`;
 };
 
 const handleResponse = async (response) => {

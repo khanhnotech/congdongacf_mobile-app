@@ -5,13 +5,13 @@ import { QUERY_KEYS } from '../utils/constants';
 
 export const useAuth = () => {
   const queryClient = useQueryClient();
-  const { token, user, setAuth, clearAuth, isInitialLoading } = useAuthStore();
+  const { token, refreshToken, user, setAuth, clearAuth, isInitialLoading } = useAuthStore();
 
   const loginMutation = useMutation({
     mutationKey: ['auth', 'login'],
     mutationFn: authService.login,
-    onSuccess: ({ token: nextToken, user: nextUser }) => {
-      setAuth({ token: nextToken, user: nextUser });
+    onSuccess: ({ token: nextToken, refreshToken: nextRefresh, user: nextUser }) => {
+      setAuth({ token: nextToken, refreshToken: nextRefresh, user: nextUser });
       queryClient.setQueryData(QUERY_KEYS.AUTH.ME, nextUser);
     },
   });
@@ -19,8 +19,8 @@ export const useAuth = () => {
   const registerMutation = useMutation({
     mutationKey: ['auth', 'register'],
     mutationFn: authService.register,
-    onSuccess: ({ token: nextToken, user: nextUser }) => {
-      setAuth({ token: nextToken, user: nextUser });
+    onSuccess: ({ token: nextToken, refreshToken: nextRefresh, user: nextUser }) => {
+      setAuth({ token: nextToken, refreshToken: nextRefresh, user: nextUser });
       queryClient.setQueryData(QUERY_KEYS.AUTH.ME, nextUser);
     },
   });
@@ -29,18 +29,23 @@ export const useAuth = () => {
     mutationKey: ['auth', 'updateProfile'],
     mutationFn: authService.updateProfile,
     onSuccess: (nextUser) => {
-      setAuth({ token, user: nextUser });
+      setAuth({ token, refreshToken, user: nextUser });
       queryClient.setQueryData(QUERY_KEYS.AUTH.ME, nextUser);
     },
   });
 
-  const logout = () => {
-    clearAuth();
-    queryClient.removeQueries({ queryKey: QUERY_KEYS.AUTH.ME });
-  };
+  const logoutMutation = useMutation({
+    mutationKey: ['auth', 'logout'],
+    mutationFn: () => authService.logout({ refreshToken, token }),
+    onSettled: () => {
+      clearAuth();
+      queryClient.removeQueries({ queryKey: QUERY_KEYS.AUTH.ME });
+    },
+  });
 
   return {
     token,
+    refreshToken,
     user,
     isInitialLoading,
     setAuth,
@@ -50,6 +55,7 @@ export const useAuth = () => {
     registerStatus: registerMutation.status,
     updateProfile: updateProfileMutation.mutateAsync,
     updateProfileStatus: updateProfileMutation.status,
-    logout,
+    logout: logoutMutation.mutateAsync,
+    logoutStatus: logoutMutation.status,
   };
 };

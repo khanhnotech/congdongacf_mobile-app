@@ -29,7 +29,7 @@ function AppShell() {
     authService
       .me()
       .then((currentUser) => {
-        setAuth({ token: 'demo-token', user: currentUser });
+        setAuth({ token: 'demo-token', refreshToken: null, user: currentUser });
       })
       .catch((error) => {
         console.warn('Hydrate auth failed', error);

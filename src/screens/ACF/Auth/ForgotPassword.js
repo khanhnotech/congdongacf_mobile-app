@@ -7,7 +7,7 @@ import { ROUTES } from '../../../utils/constants';
 
 export default function ForgotPassword() {
   const navigation = useNavigation();
-  const [email, setEmail] = useState('demo@acf-community.app');
+  const [email, setEmail] = useState('demo@gmail.com');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     screenPadding,
