@@ -8,6 +8,19 @@ const normalizeBaseUrl = (value) => {
 const API_BASE_URL =
   normalizeBaseUrl(EXPO_PUBLIC_API_BASE) || 'http://192.168.1.15:3000';
 
+const serializeParams = (params = {}) => {
+  const entries = Object.entries(params).flatMap(([key, value]) => {
+    if (value === undefined || value === null || value === '') return [];
+    if (Array.isArray(value)) {
+      return value.map((item) => [key, item]);
+    }
+    return [[key, value]];
+  });
+  return entries
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join('&');
+};
+
 const buildUrl = (path) => {
   if (!API_BASE_URL) {
     throw new Error(
@@ -33,7 +46,7 @@ const handleResponse = async (response) => {
   return data;
 };
 
-const request = async (method, path, { body, headers = {}, ...init } = {}) => {
+const request = async (method, path, { body, headers = {}, params, ...init } = {}) => {
   const fetchOptions = {
     method,
     headers: {
@@ -47,7 +60,13 @@ const request = async (method, path, { body, headers = {}, ...init } = {}) => {
     fetchOptions.body = JSON.stringify(body);
   }
 
-  const response = await fetch(buildUrl(path), fetchOptions);
+  let url = buildUrl(path);
+  const queryString = params ? serializeParams(params) : '';
+  if (queryString) {
+    url += url.includes('?') ? `&${queryString}` : `?${queryString}`;
+  }
+
+  const response = await fetch(url, fetchOptions);
   return handleResponse(response);
 };
 

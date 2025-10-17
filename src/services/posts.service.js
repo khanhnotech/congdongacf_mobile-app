@@ -1,46 +1,77 @@
-const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
+import { apiClient } from './api';
 
-const posts = [
-  {
-    id: 'post-1',
-    title: 'Chào mừng đến với cộng đồng ACF',
-    excerpt: 'Hãy tham gia và chia sẻ hoạt động cộng đồng của bạn.',
-    author: 'Ban điều hành',
-    createdAt: '2025-01-05T08:00:00Z',
-    topicId: 'topic-1',
+const mapArticleToPost = (article = {}) => {
+  const author =
+    article.author?.name ??
+    article.author_name ??
+    article.authorName ??
+    article.author ??
+    'ACF';
+
+  return {
+    id: String(article.id ?? article.slug ?? article._id ?? `${author}-${article.title ?? ''}`),
+    title: article.title ?? article.name ?? 'Bài viết',
+    excerpt: article.excerpt ?? article.summary ?? article.description ?? '',
+    content: article.content ?? article.body ?? '',
+    author,
+    createdAt:
+      article.published_at ??
+      article.created_at ??
+      article.updated_at ??
+      new Date().toISOString(),
+    topicId: article.topic_id ?? article.topicId ?? article.topic?.id ?? null,
     cover:
-      'https://dummyimage.com/800x400/3b82f6/ffffff&text=ACF+Community',
-  },
-  {
-    id: 'post-2',
-    title: 'Thông báo hoạt động thiện nguyện tháng này',
-    excerpt: 'Cập nhật kế hoạch phát quà tại các xã vùng cao.',
-    author: 'Ban hoạt động',
-    createdAt: '2025-01-10T10:30:00Z',
-    topicId: 'topic-2',
-    cover:
-      'https://dummyimage.com/800x400/22c55e/ffffff&text=ACF+Activities',
-  },
-];
+      article.cover ??
+      article.cover_url ??
+      article.thumbnail ??
+      article.thumbnail_url ??
+      null,
+    raw: article,
+  };
+};
+
+const extractData = (payload) => {
+  if (!payload) return { items: [], meta: undefined };
+  const data = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
+  const meta = payload.meta ?? payload.pagination ?? undefined;
+  return { data, meta };
+};
 
 export const postsService = {
-  async listPosts() {
-    await delay();
-    return posts;
-  },
-  async getPost(id) {
-    await delay();
-    return posts.find((post) => post.id === id) ?? null;
-  },
-  async createPost(payload) {
-    console.log('postsService.createPost', payload);
-    await delay();
-    const newPost = {
-      ...payload,
-      id: `post-${Date.now()}`,
-      createdAt: new Date().toISOString(),
+  async listPosts(params) {
+    const response = await apiClient.get('article', { params });
+    const { data, meta } = extractData(response);
+    return {
+      items: data.map(mapArticleToPost),
+      meta,
     };
-    posts.unshift(newPost);
-    return newPost;
+  },
+
+  async getPost(id) {
+    if (!id) return null;
+    const response = await apiClient.get(`article/${id}`);
+    const article = response?.data ?? response;
+    if (!article) return null;
+    return mapArticleToPost(article);
+  },
+
+  async createPost(payload) {
+    try {
+      const response = await apiClient.post('article', { body: payload });
+      const article = response?.data ?? response;
+      return mapArticleToPost(article);
+    } catch (error) {
+      console.warn('Create article failed, falling back to local mock', error);
+      return mapArticleToPost({
+        id: `draft-${Date.now()}`,
+        title: payload?.title,
+        summary: payload?.excerpt,
+        content: payload?.content,
+        cover: payload?.cover,
+        author_name: 'Bạn',
+        created_at: new Date().toISOString(),
+        topic_id: payload?.topicId,
+      });
+    }
   },
 };

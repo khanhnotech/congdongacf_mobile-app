@@ -34,10 +34,11 @@ export default function HomeScreen() {
     return <LoadingSpinner message="Đang tải nội dung trang chủ..." />;
   }
 
+  const allPosts = postsQuery.data?.items ?? [];
   const filteredPosts =
-    activeTopic && postsQuery.data
-      ? postsQuery.data.filter((post) => post.topicId === activeTopic)
-      : postsQuery.data ?? [];
+    activeTopic && allPosts.length
+      ? allPosts.filter((post) => post.topicId === activeTopic)
+      : allPosts;
 
   return (
     <ScrollView

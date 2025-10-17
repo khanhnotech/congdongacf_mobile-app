@@ -26,10 +26,8 @@ export default function TopicPosts() {
   const itemLength = responsiveSpacing(280, { min: 240, max: 340 });
 
   const posts = useMemo(() => {
-    if (!listQuery.data) return [];
-    return topicId
-      ? listQuery.data.filter((post) => post.topicId === topicId)
-      : listQuery.data;
+    const allPosts = listQuery.data?.items ?? [];
+    return topicId ? allPosts.filter((post) => post.topicId === topicId) : allPosts;
   }, [listQuery.data, topicId]);
 
   if (listQuery.isLoading) {

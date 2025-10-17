@@ -7,7 +7,7 @@ export const usePosts = (postId) => {
 
   const listQuery = useQuery({
     queryKey: QUERY_KEYS.POSTS.LIST,
-    queryFn: postsService.listPosts,
+    queryFn: () => postsService.listPosts(),
   });
 
   const detailQuery = useQuery({
@@ -20,7 +20,13 @@ export const usePosts = (postId) => {
     mutationKey: ['posts', 'create'],
     mutationFn: postsService.createPost,
     onSuccess: (createdPost) => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.POSTS.LIST });
+      queryClient.setQueryData(QUERY_KEYS.POSTS.LIST, (previous) => {
+        if (!previous) return { items: [createdPost], meta: undefined };
+        const items = Array.isArray(previous.items)
+          ? [createdPost, ...previous.items]
+          : [createdPost];
+        return { ...previous, items };
+      });
       queryClient.setQueryData(
         QUERY_KEYS.POSTS.DETAIL(createdPost.id),
         createdPost,
