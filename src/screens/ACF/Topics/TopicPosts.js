@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { FlatList, Text, View } from 'react-native';
+import { useCallback, useMemo } from 'react';
+import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import PostCard from '../../../components/PostCard';
 import LoadingSpinner from '../../../components/LoadingSpinner';
@@ -25,14 +25,38 @@ export default function TopicPosts() {
   } = useResponsiveSpacing();
   const itemLength = responsiveSpacing(280, { min: 240, max: 340 });
 
-  const posts = useMemo(() => {
-    const allPosts = listQuery.data?.items ?? [];
-    return topicId ? allPosts.filter((post) => post.topicId === topicId) : allPosts;
-  }, [listQuery.data, topicId]);
+  const {
+    data: postsData,
+    isLoading: postsLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isRefetching,
+    refetch,
+  } = listQuery;
 
-  if (listQuery.isLoading) {
+  const posts = useMemo(() => {
+    const allPosts = postsData?.items ?? [];
+    return topicId ? allPosts.filter((post) => post.topicId === topicId) : allPosts;
+  }, [postsData, topicId]);
+
+  if (postsLoading) {
     return <LoadingSpinner message="Đang tải bài viết theo chủ đề..." />;
   }
+
+  const handleLoadMore = useCallback(() => {
+    if (!hasNextPage || isFetchingNextPage) return;
+    fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const renderFooter = useMemo(() => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View style={{ marginTop: gapMedium }}>
+        <ActivityIndicator size="small" color="#DC2626" />
+      </View>
+    );
+  }, [gapMedium, isFetchingNextPage]);
 
   return (
     <View
@@ -75,6 +99,7 @@ export default function TopicPosts() {
             description="Hãy là người đầu tiên tạo bài viết mới cho chủ đề này."
           />
         }
+        ListFooterComponent={renderFooter}
         ItemSeparatorComponent={() => <View style={{ height: gapMedium }} />}
         renderItem={({ item }) => (
           <PostCard
@@ -85,9 +110,7 @@ export default function TopicPosts() {
         contentContainerStyle={{ paddingBottom: listContentPaddingBottom }}
         initialScrollIndex={(() => {
           if (!highlightedPostId) return undefined;
-          const index = posts.findIndex(
-            (post) => post.id === highlightedPostId,
-          );
+          const index = posts.findIndex((post) => post.id === highlightedPostId);
           return index > 0 ? index : undefined;
         })()}
         getItemLayout={(data, index) => ({
@@ -95,6 +118,10 @@ export default function TopicPosts() {
           offset: itemLength * index,
           index,
         })}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        refreshing={isRefetching && !postsLoading}
+        onRefresh={refetch}
       />
     </View>
   );

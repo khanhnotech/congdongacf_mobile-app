@@ -34,10 +34,40 @@ const buildUrl = (path) => {
 
 const handleResponse = async (response) => {
   const text = await response.text();
-  const data = text ? JSON.parse(text) : undefined;
+  const contentType = response.headers.get('content-type') ?? '';
+  const isJsonResponse = /\bjson\b/i.test(contentType);
+  let data;
+
+  if (text) {
+    if (isJsonResponse) {
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        const error = new Error('Received malformed JSON response from server.');
+        error.name = 'JsonParseError';
+        error.status = response.status;
+        error.responseText = text;
+        error.cause = parseError;
+        throw error;
+      }
+    } else {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = text;
+      }
+    }
+  }
 
   if (!response.ok) {
-    const error = new Error(data?.message ?? 'Request failed');
+    const rawMessage =
+      typeof data === 'string'
+        ? data
+        : data?.message ?? data?.error ?? 'Request failed';
+    const message = typeof rawMessage === 'string' && /^</.test(rawMessage.trim())
+      ? 'Request failed'
+      : rawMessage;
+    const error = new Error(message);
     error.status = response.status;
     error.data = data;
     throw error;

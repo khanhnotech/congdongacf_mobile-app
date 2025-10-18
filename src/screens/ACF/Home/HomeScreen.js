@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, ScrollView, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import TopicChip from '../../../components/TopicChip';
 import PostCard from '../../../components/PostCard';
@@ -30,106 +30,114 @@ export default function HomeScreen() {
   } = spacing;
   const gapLarge = spacing.gapLarge ?? gapMedium + 6;
 
-  if (postsQuery.isLoading || topicsQuery.isLoading) {
-    return <LoadingSpinner message="Đang tải nội dung trang chủ..." />;
-  }
+  const {
+    data: postsData,
+    isLoading: postsLoading,
+    isRefetching: postsRefetching,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    refetch: refetchPosts,
+  } = postsQuery;
 
-  const allPosts = postsQuery.data?.items ?? [];
-  const filteredPosts =
-    activeTopic && allPosts.length
-      ? allPosts.filter((post) => post.topicId === activeTopic)
-      : allPosts;
+  const allPosts = postsData?.items ?? [];
+  const filteredPosts = useMemo(() => {
+    if (!activeTopic) return allPosts;
+    return allPosts.filter((post) => post.topicId === activeTopic);
+  }, [activeTopic, allPosts]);
 
-  return (
-    <ScrollView
-      className="flex-1 bg-slate-100"
-      contentContainerStyle={{
-        paddingHorizontal: screenPadding,
-        paddingTop: verticalPadding + statusBarOffset,
-        paddingBottom: listContentPaddingBottom,
-        gap: gapLarge,
-      }}
-      showsVerticalScrollIndicator={false}
-    >
-      <View
-        className="bg-red-500 shadow"
-        style={{
-          padding: cardPadding,
-          borderRadius: cardRadius,
-          minHeight: heroHeight,
-          justifyContent: 'center',
-          gap: gapSmall,
-        }}
-      >
-        <Text
-          className="uppercase tracking-wider text-white/80"
-          style={{ fontSize: responsiveFontSize(12, { min: 11 }) }}
-        >
-          Cộng đồng ACF
-        </Text>
-        <Text
-          className="font-black text-white"
-          style={{
-            fontSize: responsiveFontSize(26, { min: 22, max: 30 }),
-            lineHeight: responsiveFontSize(32, { min: 28, max: 36 }),
-          }}
-        >
-          Hệ thống phòng chống hàng giả Bảo vệ người tiêu dùng Việt Nam
-        </Text>
-        <Text
-          className="text-white/80"
-          style={{
-            fontSize: responsiveFontSize(14),
-            lineHeight: responsiveFontSize(20, { min: 18 }),
-          }}
-        >
-          Khám phá hoạt động, chủ đề và media nổi bật trong tuần này.
-        </Text>
-      </View>
+  const handleLoadMore = useCallback(() => {
+    if (!hasNextPage || isFetchingNextPage) return;
+    fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-      <View style={{ gap: gapSmall }}>
+  const handleRefresh = useCallback(() => {
+    refetchPosts();
+  }, [refetchPosts]);
+
+  const isRefreshing = postsRefetching && !postsLoading;
+
+  const listHeader = useMemo(
+    () => (
+      <View style={{ gap: gapLarge }}>
         <View
-          className="flex-row items-center justify-between"
-          style={{ marginBottom: gapSmall }}
+          className="bg-red-500 shadow"
+          style={{
+            padding: cardPadding,
+            borderRadius: cardRadius,
+            minHeight: heroHeight,
+            justifyContent: 'center',
+            gap: gapSmall,
+          }}
         >
           <Text
-            className="font-semibold text-slate-900"
-            style={{ fontSize: responsiveFontSize(18) }}
-          >
-            Chủ đề nổi bật
-          </Text>
-          <Text
-            className="uppercase tracking-wider text-red-600"
+            className="uppercase tracking-wider text-white/80"
             style={{ fontSize: responsiveFontSize(12, { min: 11 }) }}
           >
-            Xem tất cả
+            Cộng đồng ACF
+          </Text>
+          <Text
+            className="font-black text-white"
+            style={{
+              fontSize: responsiveFontSize(26, { min: 22, max: 30 }),
+              lineHeight: responsiveFontSize(32, { min: 28, max: 36 }),
+            }}
+          >
+            Hệ thống phòng chống hàng giả Bảo vệ người tiêu dùng Việt Nam
+          </Text>
+          <Text
+            className="text-white/80"
+            style={{
+              fontSize: responsiveFontSize(14),
+              lineHeight: responsiveFontSize(20, { min: 18 }),
+            }}
+          >
+            Khám phá hoạt động, chủ đề và media nổi bật trong tuần này.
           </Text>
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingRight: screenPadding - cardPadding }}
-        >
-          <TopicChip
-            label="Tất cả"
-            active={activeTopic === null}
-            onPress={() => setActiveTopic(null)}
-          />
-          {(topicsQuery.data ?? []).map((topic) => (
-            <TopicChip
-              key={topic.id}
-              label={topic.name}
-              color={topic.color}
-              active={activeTopic === topic.id}
-              onPress={() => {
-                setActiveTopic(activeTopic === topic.id ? null : topic.id);
-              }}
-            />
-          ))}
-        </ScrollView>
-      </View>
 
-      <View style={{ gap: gapSmall }}>
+        <View style={{ gap: gapSmall }}>
+          <View
+            className="flex-row items-center justify-between"
+            style={{ marginBottom: gapSmall }}
+          >
+            <Text
+              className="font-semibold text-slate-900"
+              style={{ fontSize: responsiveFontSize(18) }}
+            >
+              Chủ đề nổi bật
+            </Text>
+            <Text
+              className="uppercase tracking-wider text-red-600"
+              style={{ fontSize: responsiveFontSize(12, { min: 11 }) }}
+            >
+              Xem tất cả
+            </Text>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingRight: screenPadding - cardPadding }}
+          >
+            <TopicChip
+              label="Tất cả"
+              active={activeTopic === null}
+              onPress={() => setActiveTopic(null)}
+            />
+            {(topicsQuery.data ?? []).map((topic) => (
+              <TopicChip
+                key={topic.id}
+                label={topic.name}
+                color={topic.color}
+                active={activeTopic === topic.id}
+                onPress={() => {
+                  setActiveTopic(activeTopic === topic.id ? null : topic.id);
+                }}
+              />
+            ))}
+          </ScrollView>
+        </View>
+
         <View
           className="flex-row items-center justify-between"
           style={{ marginBottom: gapSmall }}
@@ -140,32 +148,85 @@ export default function HomeScreen() {
           >
             Bài viết mới nhất
           </Text>
-          <Text
-            className="uppercase tracking-wider text-slate-400"
-            style={{ fontSize: responsiveFontSize(12, { min: 11 }) }}
-          >
-            {filteredPosts.length} bài
-          </Text>
         </View>
-
-        {filteredPosts.length === 0 ? (
-          <EmptyState
-            title="Chưa có bài viết"
-            description="Khi cộng đồng đăng bài, chúng sẽ xuất hiện tại đây."
-          />
-        ) : (
-          filteredPosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onPress={() =>
-                navigation.navigate(ROUTES.STACK.POST_DETAIL, { postId: post.id })
-              }
-            />
-          ))
-        )}
       </View>
-    </ScrollView>
+    ),
+    [
+      activeTopic,
+      cardPadding,
+      cardRadius,
+      gapLarge,
+      gapSmall,
+      heroHeight,
+      filteredPosts.length,
+      responsiveFontSize,
+      screenPadding,
+      topicsQuery.data,
+    ],
+  );
+
+  const renderPostItem = useCallback(
+    ({ item }) => (
+      <PostCard
+        post={item}
+        onPress={() =>
+          navigation.navigate(ROUTES.STACK.POST_DETAIL, { postId: item.id })
+        }
+      />
+    ),
+    [navigation],
+  );
+
+  const renderSeparator = useCallback(
+    () => <View style={{ height: gapSmall }} />,
+    [gapSmall],
+  );
+
+  const renderFooter = useMemo(() => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View style={{ paddingVertical: gapMedium }}>
+        <ActivityIndicator size="small" color="#DC2626" />
+      </View>
+    );
+  }, [gapMedium, isFetchingNextPage]);
+
+  const renderEmptyState = useCallback(
+    () => (
+      <View style={{ marginTop: gapSmall }}>
+        <EmptyState
+          title="Chưa có bài viết"
+          description="Khi cộng đồng đăng bài, chúng sẽ xuất hiện tại đây."
+        />
+      </View>
+    ),
+    [gapSmall],
+  );
+
+  if (postsLoading || topicsQuery.isLoading) {
+    return <LoadingSpinner message="Đang tải nội dung trang chủ..." />;
+  }
+
+  return (
+    <FlatList
+      data={filteredPosts}
+      keyExtractor={(item) => item.id}
+      renderItem={renderPostItem}
+      ItemSeparatorComponent={renderSeparator}
+      ListHeaderComponent={listHeader}
+      ListFooterComponent={renderFooter}
+      ListEmptyComponent={renderEmptyState}
+      className="flex-1 bg-slate-100"
+      contentContainerStyle={{
+        paddingTop: verticalPadding + statusBarOffset,
+        paddingHorizontal: screenPadding,
+        paddingBottom: listContentPaddingBottom,
+      }}
+      showsVerticalScrollIndicator={false}
+      onEndReached={handleLoadMore}
+      onEndReachedThreshold={0.6}
+      refreshing={isRefreshing}
+      onRefresh={handleRefresh}
+    />
   );
 }
-
