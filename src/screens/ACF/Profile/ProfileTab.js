@@ -5,6 +5,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 import { ROUTES } from '../../../utils/constants';
 import MyProfile from './MyProfile';
+import LoadingSpinner from '../../../components/LoadingSpinner';
 
 const authActions = [
   {
@@ -35,7 +36,7 @@ const authActions = [
 
 export default function ProfileTab() {
   const navigation = useNavigation();
-  const { user } = useAuth();
+  const { user, isInitialLoading } = useAuth();
   const {
     screenPadding,
     verticalPadding,
@@ -49,6 +50,10 @@ export default function ProfileTab() {
     listContentPaddingBottom,
   } = useResponsiveSpacing();
   const actionIconSize = responsiveSpacing(48, { min: 44, max: 60 });
+
+  if (isInitialLoading) {
+    return <LoadingSpinner message="�ang chu?n b? h? s� c?a b?n..." />;
+  }
 
   if (user) {
     return <MyProfile />;

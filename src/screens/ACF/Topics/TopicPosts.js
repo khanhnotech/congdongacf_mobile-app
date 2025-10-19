@@ -1,16 +1,14 @@
 import { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import PostCard from '../../../components/PostCard';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyState from '../../../components/EmptyState';
 import { usePosts } from '../../../hooks/usePosts';
 import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
-import { ROUTES } from '../../../utils/constants';
 
 export default function TopicPosts() {
   const route = useRoute();
-  const navigation = useNavigation();
   const { topicId, highlightedPostId } = route.params ?? {};
   const { listQuery } = usePosts();
   const {
@@ -101,12 +99,7 @@ export default function TopicPosts() {
         }
         ListFooterComponent={renderFooter}
         ItemSeparatorComponent={() => <View style={{ height: gapMedium }} />}
-        renderItem={({ item }) => (
-          <PostCard
-            post={item}
-            onPress={() => navigation.navigate(ROUTES.STACK.POST_DETAIL, { postId: item.id })}
-          />
-        )}
+        renderItem={({ item }) => <PostCard post={item} />}
         contentContainerStyle={{ paddingBottom: listContentPaddingBottom }}
         initialScrollIndex={(() => {
           if (!highlightedPostId) return undefined;
@@ -126,4 +119,3 @@ export default function TopicPosts() {
     </View>
   );
 }
-

@@ -49,6 +49,7 @@ export const QUERY_KEYS = {
   POSTS: {
     LIST: ['posts'],
     DETAIL: (id) => ['posts', id],
+    TREND: ['posts', 'trend'],
   },
   TOPICS: {
     LIST: ['topics'],
@@ -65,6 +66,10 @@ export const QUERY_KEYS = {
   MEDIA: {
     LIST: ['media'],
     DETAIL: (id) => ['media', id],
+  },
+  EVENTS: {
+    LIST: ['events'],
+    DETAIL: (id) => ['events', id],
   },
 };
 

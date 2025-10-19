@@ -19,7 +19,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import HomeScreen from '../screens/ACF/Home/HomeScreen';
-import PortalScreen from '../screens/Portal/PortalScreen';
+import TrendScreen from '../screens/ACF/Trend/TrendScreen';
 import ActivitiesList from '../screens/ACF/Activities/ActivitiesList';
 import AcfHub from '../screens/ACF/Hub/AcfHub';
 import NotificationsList from '../screens/ACF/Notifications/NotificationsList';
@@ -36,26 +36,22 @@ function clamp(value, min, max) {
 }
 
 const tabLabels = {
-  [ROUTES.TABS.HOME]: 'Trang chủ',
-  [ROUTES.TABS.PORTAL]: 'Cổng',
-  [ROUTES.TABS.ACTIVITIES]: 'Hoạt động',
+  [ROUTES.TABS.HOME]: 'Trang ch\u1EE7',
+  [ROUTES.TABS.PORTAL]: 'Xu h\u01B0\u1EDDng',
+  [ROUTES.TABS.ACTIVITIES]: '\u0110\u0103ng b\u00E0i',
   [ROUTES.TABS.HUB]: 'ACF',
-  [ROUTES.TABS.NOTIFICATIONS]: 'Thông báo',
-  [ROUTES.TABS.PROFILE]: 'Tôi',
+  [ROUTES.TABS.NOTIFICATIONS]: 'Th\u00F4ng b\u00E1o',
+  [ROUTES.TABS.PROFILE]: 'T\u00F4i',
 };
 
 const tabIconMap = {
   [ROUTES.TABS.HOME]: 'home-variant',
-  [ROUTES.TABS.PORTAL]: 'web',
-  [ROUTES.TABS.ACTIVITIES]: 'calendar-check',
+  [ROUTES.TABS.PORTAL]: 'trending-up',
+  [ROUTES.TABS.ACTIVITIES]: 'pencil-plus',
   [ROUTES.TABS.NOTIFICATIONS]: 'bell-badge',
   [ROUTES.TABS.PROFILE]: 'account-circle',
 };
 
-tabLabels[ROUTES.TABS.PORTAL] = 'Xu h\u01B0\u1EDBng';
-tabLabels[ROUTES.TABS.ACTIVITIES] = '\u0110\u0103ng b\u00E0i';
-tabIconMap[ROUTES.TABS.PORTAL] = 'trending-up';
-tabIconMap[ROUTES.TABS.ACTIVITIES] = 'pencil-plus';
 
 const menuItems = [
   { label: 'Trang chủ', icon: 'home-outline', action: { type: 'tab', screen: ROUTES.TABS.HOME } },
@@ -342,7 +338,10 @@ export default function MainTabs() {
   };
 
   const handleSearch = () => { rootNavigation.navigate(ROUTES.STACK.TOPICS_GRID); };
-  const handlePortalShortcut = useCallback(() => { setMenuVisible(false); rootNavigation.navigate(ROUTES.MAIN_TABS, { screen: ROUTES.TABS.PORTAL }); }, [rootNavigation]);
+  const handlePortalShortcut = useCallback(() => {
+    setMenuVisible(false);
+    rootNavigation.navigate(ROUTES.STACK.PORTAL);
+  }, [rootNavigation]);
 
   const TAB_BASE = 60;
   const padBottom = Math.max(insets.bottom, 10);
@@ -352,43 +351,101 @@ export default function MainTabs() {
     <>
       <MenuDrawer visible={menuVisible} onClose={() => setMenuVisible(false)} onSelect={handleMenuSelect} />
       <View style={{ flex: 1 }}>
-        <Tab.Navigator initialRouteName={ROUTES.TABS.HOME} screenOptions={({ route }) => ({
-          header: () => (
-            <AppHeader
-              title={tabLabels[route.name] ?? 'ACF Community'}
-              onOpenMenu={() => setMenuVisible(true)}
-              onSearch={handleSearch}
-              onAvatarPress={() => rootNavigation.navigate(ROUTES.MAIN_TABS, { screen: ROUTES.TABS.PROFILE })}
-              avatarInitials={avatarInitials}
-              avatarColor={user ? '#DC2626' : '#94A3B8'}
-            />
-          ),
-          tabBarShowLabel: true,
-          tabBarLabel: tabLabels[route.name],
-          tabBarActiveTintColor: '#DC2626',
-          tabBarInactiveTintColor: '#94A3B8',
-          tabBarHideOnKeyboard: true,
-          tabBarStyle: {
-            height: tabHeight, paddingBottom: padBottom, paddingTop: 10, borderTopWidth: 0,
-            backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28,
-            ...Platform.select({ ios: { shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: -2 } }, android: { elevation: 12 } }),
-          },
-          tabBarLabelStyle: { fontSize: 12, fontWeight: '600', marginBottom: 2 },
-          tabBarIcon: ({ color, size, focused }) => {
-            if (route.name === ROUTES.TABS.HUB) return null;
-            const iconName = tabIconMap[route.name] ?? 'circle-outline';
-            return <MaterialCommunityIcons name={iconName} color={color} size={focused ? 28 : 24} />;
-          },
-        })}>
-          <Tab.Screen name={ROUTES.TABS.HOME} component={HomeScreen} options={{ title: 'Trang chủ' }} />
-          <Tab.Screen name={ROUTES.TABS.PORTAL} component={PortalScreen} options={{ title: 'Cổng', headerShown: false, tabBarStyle: { display: 'none' } }} />
-          <Tab.Screen name={ROUTES.TABS.ACTIVITIES} component={ActivitiesList} options={{ title: 'Hoạt động' }} />
-          <Tab.Screen name={ROUTES.TABS.HUB} component={AcfHub} options={{ title: 'ACF Hub', tabBarButton: () => null, tabBarIcon: () => null, tabBarLabel: () => null, tabBarItemStyle: { display: 'none' } }} />
-          <Tab.Screen name={ROUTES.TABS.NOTIFICATIONS} component={NotificationsList} options={{ title: 'Thông báo' }} />
-          <Tab.Screen name={ROUTES.TABS.PROFILE} component={ProfileTab} options={{ title: 'Tôi' }} />
+        <Tab.Navigator
+          initialRouteName={ROUTES.TABS.HOME}
+          screenOptions={({ route }) => ({
+            header: () => (
+              <AppHeader
+                title={tabLabels[route.name] ?? 'ACF Community'}
+                onOpenMenu={() => setMenuVisible(true)}
+                onSearch={handleSearch}
+                onAvatarPress={() =>
+                  rootNavigation.navigate(ROUTES.MAIN_TABS, { screen: ROUTES.TABS.PROFILE })
+                }
+                avatarInitials={avatarInitials}
+                avatarColor={user ? '#DC2626' : '#94A3B8'}
+              />
+            ),
+            tabBarShowLabel: true,
+            tabBarLabel: tabLabels[route.name],
+            tabBarActiveTintColor: '#DC2626',
+            tabBarInactiveTintColor: '#94A3B8',
+            tabBarHideOnKeyboard: true,
+            tabBarStyle: {
+              height: tabHeight,
+              paddingBottom: padBottom,
+              paddingTop: 10,
+              borderTopWidth: 0,
+              backgroundColor: '#FFFFFF',
+              borderTopLeftRadius: 28,
+              borderTopRightRadius: 28,
+              ...Platform.select({
+                ios: {
+                  shadowColor: '#000',
+                  shadowOpacity: 0.06,
+                  shadowRadius: 10,
+                  shadowOffset: { width: 0, height: -2 },
+                },
+                android: { elevation: 12 },
+              }),
+            },
+            tabBarLabelStyle: { fontSize: 12, fontWeight: '600', marginBottom: 2 },
+            tabBarIcon: ({ color, size, focused }) => {
+              if (route.name === ROUTES.TABS.HUB) return null;
+              const iconName = tabIconMap[route.name] ?? 'circle-outline';
+              return (
+                <MaterialCommunityIcons
+                  name={iconName}
+                  color={color}
+                  size={focused ? 28 : 24}
+                />
+              );
+            },
+          })}
+        >
+          <Tab.Screen
+            name={ROUTES.TABS.HOME}
+            component={HomeScreen}
+            options={{ title: tabLabels[ROUTES.TABS.HOME] }}
+          />
+          <Tab.Screen
+            name={ROUTES.TABS.PORTAL}
+            component={TrendScreen}
+            options={{ title: tabLabels[ROUTES.TABS.PORTAL] }}
+          />
+          <Tab.Screen
+            name={ROUTES.TABS.ACTIVITIES}
+            component={ActivitiesList}
+            options={{ title: tabLabels[ROUTES.TABS.ACTIVITIES] }}
+          />
+          <Tab.Screen
+            name={ROUTES.TABS.HUB}
+            component={AcfHub}
+            options={{
+              title: 'ACF Hub',
+              tabBarButton: () => null,
+              tabBarIcon: () => null,
+              tabBarLabel: () => null,
+              tabBarItemStyle: { display: 'none' },
+            }}
+          />
+          <Tab.Screen
+            name={ROUTES.TABS.NOTIFICATIONS}
+            component={NotificationsList}
+            options={{ title: tabLabels[ROUTES.TABS.NOTIFICATIONS] }}
+          />
+          <Tab.Screen
+            name={ROUTES.TABS.PROFILE}
+            component={ProfileTab}
+            options={{ title: tabLabels[ROUTES.TABS.PROFILE] }}
+          />
         </Tab.Navigator>
         <DraggablePortalButton onPress={handlePortalShortcut} />
       </View>
     </>
   );
 }
+
+
+
+

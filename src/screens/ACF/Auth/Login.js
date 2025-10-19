@@ -9,8 +9,8 @@ import { ROUTES } from '../../../utils/constants';
 export default function Login() {
   const navigation = useNavigation();
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('123456');
+  const [email, setEmail] = useState('khanhmobileuser');
+  const [password, setPassword] = useState('Khanh123!');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);

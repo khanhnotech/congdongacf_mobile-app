@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, ScrollView, Text, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import TopicChip from '../../../components/TopicChip';
 import PostCard from '../../../components/PostCard';
 import LoadingSpinner from '../../../components/LoadingSpinner';
@@ -8,10 +7,9 @@ import EmptyState from '../../../components/EmptyState';
 import { usePosts } from '../../../hooks/usePosts';
 import { useTopics } from '../../../hooks/useTopics';
 import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
-import { ROUTES } from '../../../utils/constants';
+import { useTogglePostLike } from '../../../hooks/useTogglePostLike';
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
   const { listQuery: postsQuery } = usePosts();
   const { listQuery: topicsQuery } = useTopics();
   const [activeTopic, setActiveTopic] = useState(null);
@@ -56,6 +54,27 @@ export default function HomeScreen() {
   }, [refetchPosts]);
 
   const isRefreshing = postsRefetching && !postsLoading;
+  const { toggleLike, toggleLikeStatus } = useTogglePostLike();
+
+  const handleToggleLike = useCallback(
+    async (targetPost) => {
+      if (!targetPost) return;
+      const candidateId =
+        Number(
+          targetPost.articleId ?? targetPost?.raw?.article_id ?? targetPost.id,
+        );
+      if (!Number.isFinite(candidateId)) {
+        console.warn('Cannot toggle like, invalid article id', targetPost?.id);
+        return;
+      }
+      try {
+        await toggleLike(candidateId);
+      } catch (error) {
+        console.warn('Toggle like failed', error);
+      }
+    },
+    [toggleLike],
+  );
 
   const listHeader = useMemo(
     () => (
@@ -169,12 +188,11 @@ export default function HomeScreen() {
     ({ item }) => (
       <PostCard
         post={item}
-        onPress={() =>
-          navigation.navigate(ROUTES.STACK.POST_DETAIL, { postId: item.id })
-        }
+        onToggleLike={handleToggleLike}
+        likePending={toggleLikeStatus === 'pending'}
       />
     ),
-    [navigation],
+    [handleToggleLike, toggleLikeStatus],
   );
 
   const renderSeparator = useCallback(

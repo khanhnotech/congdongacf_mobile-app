@@ -1,16 +1,54 @@
+import { useCallback, useMemo } from 'react';
 import { ScrollView, Text, View, Image, TouchableOpacity } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyState from '../../../components/EmptyState';
 import { usePosts } from '../../../hooks/usePosts';
+import { useTogglePostLike } from '../../../hooks/useTogglePostLike';
 import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 import { formatDateTime } from '../../../utils/format';
 
+const resolveArticleId = (target) => {
+  if (!target) return null;
+  const candidates = [
+    target.articleId,
+    target.raw?.article_id,
+    target.raw?.id,
+    target.id,
+  ];
+
+  for (const candidate of candidates) {
+    const number = Number(candidate);
+    if (Number.isFinite(number)) {
+      return number;
+    }
+  }
+
+  return null;
+};
+
 export default function PostDetail() {
   const route = useRoute();
-  const { postId } = route.params ?? {};
-  const { detailQuery } = usePosts(postId);
+  const {
+    postId,
+    postSlug,
+    id: legacyId,
+    slug: legacySlug,
+  } = route.params ?? {};
+  const detailTarget = useMemo(() => {
+    const slugValue = (postSlug ?? legacySlug) ?? null;
+    const idValue = postId ?? legacyId ?? null;
+    if (!slugValue && (idValue === null || idValue === undefined)) {
+      return undefined;
+    }
+    const target = {};
+    if (slugValue) target.postSlug = slugValue;
+    if (idValue !== null && idValue !== undefined) target.postId = idValue;
+    return target;
+  }, [legacyId, legacySlug, postId, postSlug]);
+  const { detailQuery } = usePosts(detailTarget);
+  const { toggleLike, toggleLikeStatus } = useTogglePostLike();
   const {
     screenPadding,
     verticalPadding,
@@ -24,7 +62,7 @@ export default function PostDetail() {
     listContentPaddingBottom,
   } = useResponsiveSpacing();
 
-  if (!postId) {
+  if (!detailTarget) {
     return (
       <View
         className="flex-1 items-center justify-center bg-white"
@@ -62,6 +100,28 @@ export default function PostDetail() {
   }
 
   const post = detailQuery.data;
+  const articleId = resolveArticleId(post);
+  const likeLabel =
+    typeof post.likeCount === 'number' ? `Th\u00EDch (${post.likeCount})` : 'Th\u00EDch';
+  const isLiked = Boolean(post.liked);
+  const likeIcon = isLiked ? 'heart' : 'heart-outline';
+  const likeActiveColor = '#DC2626';
+  const likeInactiveColor = '#9CA3AF';
+  const likeIconColor = isLiked ? likeActiveColor : likeInactiveColor;
+  const likeTextColor = isLiked ? likeActiveColor : likeInactiveColor;
+  const isLikePending = toggleLikeStatus === 'pending';
+
+  const handleToggleLike = useCallback(async () => {
+    if (!Number.isFinite(articleId)) {
+      console.warn('Cannot toggle like, invalid article id', post?.id);
+      return;
+    }
+    try {
+      await toggleLike(articleId);
+    } catch (error) {
+      console.warn('Toggle like failed', error);
+    }
+  }, [articleId, post, toggleLike]);
   const initials =
     post.author
       ?.split(' ')
@@ -187,8 +247,12 @@ export default function PostDetail() {
           }}
         >
           <ActionPill
-            icon="heart-outline"
-            label="Thích"
+            icon={likeIcon}
+            label={likeLabel}
+            onPress={handleToggleLike}
+            disabled={isLikePending}
+            iconColor={likeIconColor}
+            textColor={likeTextColor}
             style={{
               marginHorizontal: gapSmall / 2,
               marginBottom: gapSmall,
@@ -216,7 +280,15 @@ export default function PostDetail() {
   );
 }
 
-function ActionPill({ icon, label, style: extraStyle }) {
+function ActionPill({
+  icon,
+  label,
+  style: extraStyle,
+  onPress,
+  disabled = false,
+  iconColor = '#DC2626',
+  textColor = '#DC2626',
+}) {
   const {
     cardRadius,
     chipPaddingHorizontal,
@@ -230,6 +302,8 @@ function ActionPill({ icon, label, style: extraStyle }) {
   return (
     <TouchableOpacity
       activeOpacity={0.85}
+      onPress={onPress}
+      disabled={disabled}
       className="flex-row items-center border border-red-200 bg-white"
       style={[
         {
@@ -243,12 +317,13 @@ function ActionPill({ icon, label, style: extraStyle }) {
           justifyContent: 'center',
         },
         extraStyle,
+        disabled ? { opacity: 0.6 } : null,
       ]}
     >
-      <MaterialCommunityIcons name={icon} size={responsiveFontSize(18)} color="#DC2626" />
+      <MaterialCommunityIcons name={icon} size={responsiveFontSize(18)} color={iconColor} />
       <Text
-        className="font-semibold text-red-600"
-        style={{ fontSize: responsiveFontSize(13) }}
+        className="font-semibold"
+        style={{ fontSize: responsiveFontSize(13), color: textColor }}
       >
         {label}
       </Text>

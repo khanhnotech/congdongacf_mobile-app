@@ -2,15 +2,6 @@ import { apiClient } from './api';
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const mockUser = {
-  id: 'user-1',
-  email: 'demo@acf-community.app',
-  firstName: 'Demo',
-  lastName: 'User',
-  avatar: 'https://dummyimage.com/128x128/0f172a/ffffff&text=DU',
-  bio: 'Thành viên cộng đồng ACF - hãy chỉnh sửa hồ sơ của bạn.',
-};
-
 const normalizeLoginPayload = (credentials = {}) => {
   const identifier =
     credentials.identifier ??
@@ -70,8 +61,15 @@ export const authService = {
     return adaptAuthPayload(response);
   },
   async me() {
-    await delay();
-    return mockUser;
+    try {
+      const response = await apiClient.get('auth/me');
+      return response?.data?.user ?? null;
+    } catch (error) {
+      if (error?.status === 401 || error?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
   },
   async forgotPassword(payload) {
     console.log('authService.forgotPassword', payload);
@@ -79,9 +77,10 @@ export const authService = {
     return true;
   },
   async updateProfile(changes) {
-    console.log('authService.updateProfile', changes);
-    await delay();
-    return { ...mockUser, ...changes };
+    const response = await apiClient.put('auth/profile', {
+      body: changes,
+    });
+    return response?.data?.user ?? null;
   },
   async logout({ refreshToken, token } = {}) {
     try {

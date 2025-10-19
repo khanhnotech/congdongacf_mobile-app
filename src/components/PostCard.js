@@ -5,7 +5,7 @@ import { useResponsiveSpacing } from '../hooks/useResponsiveSpacing';
 import { formatDateTime } from '../utils/format';
 import { ROUTES } from '../utils/constants';
 
-export default function PostCard({ post, onPress }) {
+export default function PostCard({ post, onPress, onToggleLike, likePending = false }) {
   if (!post) return null;
 
   const navigation = useNavigation();
@@ -40,8 +40,36 @@ export default function PostCard({ post, onPress }) {
       return;
     }
 
-    if (post.id) {
-      navigation.navigate(ROUTES.STACK.POST_DETAIL, { postId: post.id });
+    const params = {};
+    const slugCandidate =
+      typeof post?.slug === 'string' && post.slug.trim() ? post.slug.trim() : null;
+    if (slugCandidate) {
+      params.postSlug = slugCandidate;
+    }
+
+    const resolveNumericId = (value) => {
+      if (value === undefined || value === null || value === '') return null;
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    };
+
+    const numericIdCandidates = [
+      post?.articleId,
+      post?.raw?.article_id,
+      post?.raw?.id,
+      post?.id,
+    ];
+
+    for (const candidate of numericIdCandidates) {
+      const numeric = resolveNumericId(candidate);
+      if (numeric !== null) {
+        params.postId = numeric;
+        break;
+      }
+    }
+
+    if (Object.keys(params).length) {
+      navigation.navigate(ROUTES.STACK.POST_DETAIL, params);
     }
   };
 
@@ -51,6 +79,10 @@ export default function PostCard({ post, onPress }) {
   const pillVertical = Math.max(chipPaddingVertical - 1, 8);
   const coverHeight = responsiveSpacing(210, { min: 160, max: 260 });
   const iconSize = responsiveFontSize(16, { min: 14, max: 20 });
+  const likeCountLabel =
+    typeof post.likeCount === 'number' ? `Th\u00EDch (${post.likeCount})` : 'Th\u00EDch';
+  const isLiked = Boolean(post.liked);
+  const likeIconName = isLiked ? 'heart' : 'heart-outline';
 
   return (
     <TouchableOpacity
@@ -63,10 +95,7 @@ export default function PostCard({ post, onPress }) {
         marginBottom: gapLarge,
       }}
     >
-      <View
-        className="flex-row items-center"
-        style={{ gap: gapSmall }}
-      >
+      <View className="flex-row items-center" style={{ gap: gapSmall }}>
         <View
           className="items-center justify-center bg-slate-200"
           style={{
@@ -75,10 +104,7 @@ export default function PostCard({ post, onPress }) {
             borderRadius: avatarSize / 2,
           }}
         >
-          <Text
-            className="font-semibold text-slate-700"
-            style={{ fontSize: responsiveFontSize(13) }}
-          >
+          <Text className="font-semibold text-slate-700" style={{ fontSize: responsiveFontSize(13) }}>
             {initials}
           </Text>
         </View>
@@ -89,10 +115,7 @@ export default function PostCard({ post, onPress }) {
           >
             {post.author}
           </Text>
-          <Text
-            className="text-slate-400"
-            style={{ fontSize: responsiveFontSize(12, { min: 10 }) }}
-          >
+          <Text className="text-slate-400" style={{ fontSize: responsiveFontSize(12, { min: 10 }) }}>
             {formatDateTime(post.createdAt)}
           </Text>
         </View>
@@ -150,13 +173,20 @@ export default function PostCard({ post, onPress }) {
         }}
       >
         <PostCardAction
-          icon="heart-outline"
-          label="Thích"
+          icon={likeIconName}
+          label={likeCountLabel}
           iconSize={iconSize}
           style={{
             marginHorizontal: gapSmall / 2,
             marginBottom: gapSmall,
           }}
+          iconColor={isLiked ? '#DC2626' : '#DC2626'}
+          onPress={() => {
+            if (onToggleLike) {
+              onToggleLike(post);
+            }
+          }}
+          disabled={likePending}
           chipPadding={{
             horizontal: pillHorizontal,
             vertical: pillVertical,
@@ -207,6 +237,9 @@ function PostCardAction({
   label,
   iconSize,
   style,
+  onPress,
+  disabled,
+  iconColor = '#DC2626',
   chipPadding,
   radius,
   gap,
@@ -218,6 +251,8 @@ function PostCardAction({
   return (
     <TouchableOpacity
       activeOpacity={0.8}
+      onPress={onPress}
+      disabled={disabled}
       className="flex-row items-center border border-red-200 bg-white"
       style={[
         {
@@ -230,16 +265,15 @@ function PostCardAction({
           minWidth,
           justifyContent: 'center',
         },
+        disabled ? { opacity: 0.6 } : null,
         style,
       ]}
     >
-      <MaterialCommunityIcons name={icon} size={iconSize} color="#DC2626" />
-      <Text
-        className="font-medium text-red-600"
-        style={{ fontSize: responsiveFontSize(13) }}
-      >
+      <MaterialCommunityIcons name={icon} size={iconSize} color={iconColor} />
+      <Text className="font-medium text-red-600" style={{ fontSize: responsiveFontSize(13) }}>
         {label}
       </Text>
     </TouchableOpacity>
   );
 }
+

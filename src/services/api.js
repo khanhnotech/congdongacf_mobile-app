@@ -1,3 +1,5 @@
+import { useAuthStore } from '../store/auth.store';
+
 const { EXPO_PUBLIC_API_BASE } = process.env;
 
 const normalizeBaseUrl = (value) => {
@@ -77,10 +79,17 @@ const handleResponse = async (response) => {
 };
 
 const request = async (method, path, { body, headers = {}, params, ...init } = {}) => {
+  const authState = useAuthStore.getState();
+  const token = authState?.token;
+  const hasAuthorizationHeader = Object.keys(headers).some(
+    (key) => key?.toLowerCase?.() === 'authorization',
+  );
+
   const fetchOptions = {
     method,
     headers: {
       'Content-Type': 'application/json',
+      ...(token && !hasAuthorizationHeader ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
     ...init,

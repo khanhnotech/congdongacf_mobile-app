@@ -4,7 +4,7 @@ export const useAuthStore = create((set) => ({
   token: null,
   refreshToken: null,
   user: null,
-  isInitialLoading: false,
+  isInitialLoading: true,
   setAuth: ({ token, refreshToken, user }) =>
     set((state) => ({
       token: token ?? state.token,
@@ -12,6 +12,8 @@ export const useAuthStore = create((set) => ({
       user: user ?? state.user,
       isInitialLoading: false,
     })),
+  finishInitialLoading: () =>
+    set((state) => (state.isInitialLoading ? { isInitialLoading: false } : {})),
   clearAuth: () =>
     set({ token: null, refreshToken: null, user: null, isInitialLoading: false }),
 }));

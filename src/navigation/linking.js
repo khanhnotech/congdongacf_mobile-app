@@ -26,7 +26,7 @@ export const linking = {
       [ROUTES.STACK.MEDIA_VIEWER]: 'media/:id',
       [ROUTES.STACK.PROFILE_VIEW]: 'user/:id',
       [ROUTES.STACK.CREATE_POST]: 'posts/new',
-      [ROUTES.STACK.POST_DETAIL]: 'posts/:id',
+      [ROUTES.STACK.POST_DETAIL]: 'articles/slug/:postSlug',
     },
   },
 };
