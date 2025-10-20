@@ -53,6 +53,7 @@ export const QUERY_KEYS = {
     DETAIL: (id) => ['posts', id],
     TREND: ['posts', 'trend'],
     NEW: ['posts', 'new'],
+    COMMENTS: (articleId) => ['posts', articleId, 'comments'],
   },
   TOPICS: {
     LIST: ['topics'],

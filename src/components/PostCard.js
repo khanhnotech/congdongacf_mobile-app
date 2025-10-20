@@ -80,7 +80,7 @@ export default function PostCard({ post, onPress, onToggleLike, likePending = fa
   const coverHeight = responsiveSpacing(210, { min: 160, max: 260 });
   const iconSize = responsiveFontSize(16, { min: 14, max: 20 });
   const likeCountLabel =
-    typeof post.likeCount === 'number' ? `Th\u00EDch (${post.likeCount})` : 'Th\u00EDch';
+    typeof post.likeCount === 'number' ? `Thích (${post.likeCount})` : 'Thích';
   const isLiked = Boolean(post.liked);
   const likeIconName = isLiked ? 'heart' : 'heart-outline';
 

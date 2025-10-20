@@ -1,11 +1,12 @@
-import { useCallback, useMemo } from 'react';
-import { ScrollView, Text, View, Image, TouchableOpacity } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { ScrollView, Text, View, Image, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyState from '../../../components/EmptyState';
 import { usePosts } from '../../../hooks/usePosts';
 import { useTogglePostLike } from '../../../hooks/useTogglePostLike';
+import { usePostComments } from '../../../hooks/usePostComments';
 import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 import { formatDateTime } from '../../../utils/format';
 
@@ -26,6 +27,14 @@ const resolveArticleId = (target) => {
   }
 
   return null;
+};
+
+const splitIntoParagraphs = (value) => {
+  if (!value) return [];
+  return String(value)
+    .split(/\r?\n\s*\r?\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
 };
 
 export default function PostDetail() {
@@ -62,54 +71,87 @@ export default function PostDetail() {
     listContentPaddingBottom,
   } = useResponsiveSpacing();
 
-  if (!detailTarget) {
-    return (
-      <View
-        className="flex-1 items-center justify-center bg-white"
-        style={{ padding: screenPadding }}
-      >
-        <Text
-          className="text-slate-500"
-          style={{ fontSize: responsiveFontSize(14) }}
-        >
-          Bài viết không tồn tại hoặc đã bị xoá.
-        </Text>
-      </View>
-    );
-  }
+  const post = detailQuery?.data ?? null;
 
-  if (detailQuery.isLoading) {
-    return <LoadingSpinner message="Đang tải bài viết..." />;
-  }
+  const introParagraphs = useMemo(() => {
+    const source =
+      post?.excerpt ??
+      post?.summary ??
+      post?.raw?.summary ??
+      '';
+    return splitIntoParagraphs(source);
+  }, [post]);
 
-  if (!detailQuery.data) {
-    return (
-      <View
-        className="flex-1 bg-white"
-        style={{
-          paddingHorizontal: screenPadding,
-          paddingTop: verticalPadding + statusBarOffset,
-        }}
-      >
-        <EmptyState
-          title="Không tìm thấy bài viết"
-          description="Có thể bài viết đã bị gỡ hoặc liên kết không chính xác."
-        />
-      </View>
-    );
-  }
+  const contentParagraphs = useMemo(() => {
+    if (!post) return [];
+    const source =
+      post.content ??
+      post.raw?.content ??
+      post.raw?.body ??
+      post.raw?.article_body ??
+      '';
+    return splitIntoParagraphs(source);
+  }, [post]);
 
-  const post = detailQuery.data;
-  const articleId = resolveArticleId(post);
-  const likeLabel =
-    typeof post.likeCount === 'number' ? `Th\u00EDch (${post.likeCount})` : 'Th\u00EDch';
-  const isLiked = Boolean(post.liked);
-  const likeIcon = isLiked ? 'heart' : 'heart-outline';
-  const likeActiveColor = '#DC2626';
-  const likeInactiveColor = '#9CA3AF';
-  const likeIconColor = isLiked ? likeActiveColor : likeInactiveColor;
-  const likeTextColor = isLiked ? likeActiveColor : likeInactiveColor;
-  const isLikePending = toggleLikeStatus === 'pending';
+  const sections = useMemo(() => {
+    if (!post?.raw?.sections) return [];
+    return [...post.raw.sections]
+      .sort((a, b) => (a?.position ?? 0) - (b?.position ?? 0))
+      .map((section, index) => ({
+        ...section,
+        key: String(section?.id ?? `section-${index}`),
+        title: section?.title ?? `Section ${index + 1}`,
+        paragraphs: splitIntoParagraphs(section?.content ?? ''),
+        media: Array.isArray(section?.media)
+          ? [...section.media]
+              .filter((item) => item?.media_url)
+              .sort(
+                (a, b) =>
+                  (a?.media_position ?? a?.position ?? 0) -
+                  (b?.media_position ?? b?.position ?? 0),
+              )
+          : [],
+      }))
+      .filter((section) => section.paragraphs.length || section.media.length);
+  }, [post]);
+
+  const articleId = useMemo(() => {
+    const resolved = resolveArticleId(post);
+    if (Number.isFinite(resolved)) {
+      return resolved;
+    }
+    const fallbackCandidates = [
+      detailTarget?.postId,
+      detailTarget?.id,
+      detailTarget?.articleId,
+    ];
+    for (const candidate of fallbackCandidates) {
+      const numeric = Number(candidate);
+      if (Number.isFinite(numeric)) {
+        return numeric;
+      }
+    }
+    return undefined;
+  }, [detailTarget, post]);
+
+  const {
+    comments,
+    isLoading: commentsLoading,
+    error: commentsError,
+    hasNextPage: hasMoreComments,
+    fetchNextPage: fetchMoreComments,
+    isFetchingNextPage: isFetchingMoreComments,
+    createComment,
+    createStatus: commentCreateStatus,
+  } = usePostComments(articleId, { pageSize: 10 });
+
+  const [commentText, setCommentText] = useState('');
+  const [commentError, setCommentError] = useState(null);
+
+  const isCommentSubmitting = commentCreateStatus === 'pending';
+  const commentsErrorMessage =
+    commentsError?.message ?? 'Không thể tải bình luận. Thử lại sau.';
+  const canSubmitComment = Number.isFinite(articleId);
 
   const handleToggleLike = useCallback(async () => {
     if (!Number.isFinite(articleId)) {
@@ -121,7 +163,71 @@ export default function PostDetail() {
     } catch (error) {
       console.warn('Toggle like failed', error);
     }
-  }, [articleId, post, toggleLike]);
+  }, [articleId, post?.id, toggleLike]);
+
+  const handleSubmitComment = useCallback(async () => {
+    const trimmed = commentText.trim();
+    if (!trimmed || !Number.isFinite(articleId)) {
+      return;
+    }
+    try {
+      setCommentError(null);
+      await createComment(trimmed);
+      setCommentText('');
+    } catch (error) {
+      const message =
+        error?.message ?? 'Không thể gửi bình luận thử lại sau.';
+      setCommentError(message);
+    }
+  }, [articleId, commentText, createComment]);
+
+  if (!detailTarget) {
+    return (
+      <View
+        className="flex-1 items-center justify-center bg-white"
+        style={{ padding: screenPadding }}
+      >
+        <Text
+          className="text-slate-500"
+          style={{ fontSize: responsiveFontSize(14) }}
+        >
+          Bai viet khong ton tai hoac da bi xoa.
+        </Text>
+      </View>
+    );
+  }
+
+  if (detailQuery.isLoading) {
+    return <LoadingSpinner message="Dang tai bai viet..." />;
+  }
+
+  if (!post) {
+    return (
+      <View
+        className="flex-1 bg-white"
+        style={{
+          paddingHorizontal: screenPadding,
+          paddingTop: verticalPadding + statusBarOffset,
+        }}
+      >
+        <EmptyState
+          title="Không tìm thấy bài viết"
+          description="Có thể bài viết đã bị gỡ bỏ hoặc liên kết không chính xát."
+        />
+      </View>
+    );
+  }
+
+  const likeLabel =
+    typeof post.likeCount === 'number' ? `Thích (${post.likeCount})` : 'Thích';
+  const isLiked = Boolean(post.liked);
+  const likeIcon = isLiked ? 'heart' : 'heart-outline';
+  const likeActiveColor = '#DC2626';
+  const likeInactiveColor = '#9CA3AF';
+  const likeIconColor = isLiked ? likeActiveColor : likeInactiveColor;
+  const likeTextColor = isLiked ? likeActiveColor : likeInactiveColor;
+  const isLikePending = toggleLikeStatus === 'pending';
+
   const initials =
     post.author
       ?.split(' ')
@@ -190,15 +296,20 @@ export default function PostDetail() {
           >
             {post.title}
           </Text>
-          <Text
-            className="text-slate-600"
-            style={{
-              fontSize: responsiveFontSize(14),
-              lineHeight: responsiveFontSize(20, { min: 18 }),
-            }}
-          >
-            {post.excerpt}
-          </Text>
+          {introParagraphs.length
+            ? introParagraphs.map((paragraph, index) => (
+                <Text
+                  key={`intro-${index}`}
+                  className="text-slate-600"
+                  style={{
+                    fontSize: responsiveFontSize(14),
+                    lineHeight: responsiveFontSize(20, { min: 18 }),
+                  }}
+                >
+                  {paragraph.replace(/\r?\n/g, '\n')}
+                </Text>
+              ))
+            : null}
         </View>
 
         {post.cover ? (
@@ -219,24 +330,73 @@ export default function PostDetail() {
             />
           </View>
         ) : null}
-
-        <View style={{ gap: gapSmall }}>
-          <Text
-            className="font-semibold text-slate-900"
-            style={{ fontSize: responsiveFontSize(16) }}
-          >
-            Nội dung chi tiết
-          </Text>
-          <Text
-            className="text-slate-600"
-            style={{
-              fontSize: responsiveFontSize(14),
-              lineHeight: responsiveFontSize(22, { min: 20 }),
-            }}
-          >
-            Nội dung chi tiết của bài viết sẽ được hiển thị tại đây. Bạn có thể mở rộng dữ liệu từ API thực tế để trình bày đầy đủ văn bản, hình ảnh hoặc tài liệu đính kèm.
-          </Text>
-        </View>
+        {sections.length ? (
+          <View style={{ gap: gapMedium, marginTop: gapMedium }}>
+            {sections.map((section) => {
+              const sectionMediaItems = section.media;
+              return (
+                <View
+                  key={section.key}
+                  className=""
+                  style={{
+                    borderRadius: cardRadius,
+                    gap: gapSmall,
+                  }}
+                >
+                  <Text
+                    className="font-semibold text-slate-900"
+                    style={{ fontSize: responsiveFontSize(16) }}
+                  >
+                    {section.title}
+                  </Text>
+                  {section.paragraphs.length
+                    ? section.paragraphs.map((paragraph, index) => (
+                        <Text
+                          key={`${section.key}-paragraph-${index}`}
+                          className="text-slate-600"
+                          style={{
+                            fontSize: responsiveFontSize(14),
+                            lineHeight: responsiveFontSize(22, { min: 20 }),
+                          }}
+                        >
+                          {paragraph.replace(/\r?\n/g, '\n')}
+                        </Text>
+                      ))
+                    : null}
+                  {sectionMediaItems.map((mediaItem, index) => (
+                    <View
+                      key={`${section.key}-media-${mediaItem.id ?? index}`}
+                      className="border border-slate-200"
+                      style={{
+                        borderRadius: cardRadius,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <Image
+                        source={{ uri: mediaItem.media_url }}
+                        style={{
+                          width: '100%',
+                          height: responsiveSpacing(220, { min: 180, max: 320 }),
+                        }}
+                      />
+                      {mediaItem.caption ? (
+                        <Text
+                          className="text-slate-500"
+                          style={{
+                            paddingTop: gapSmall / 2,
+                            fontSize: responsiveFontSize(12),
+                          }}
+                        >
+                          {mediaItem.caption}
+                        </Text>
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              );
+            })}
+          </View>
+        ) : null}
 
         <View
           className="flex-row"
@@ -274,6 +434,167 @@ export default function PostDetail() {
               marginBottom: gapSmall,
             }}
           />
+        </View>
+        <View
+          className="border-t border-slate-200"
+          style={{ paddingTop: gapMedium, gap: gapSmall }}
+        >
+          <Text
+            className="font-semibold text-slate-900"
+            style={{ fontSize: responsiveFontSize(18) }}
+          >
+            Binh luan
+          </Text>
+          <View
+            className="border border-slate-200 bg-white"
+            style={{
+              borderRadius: cardRadius,
+              padding: cardPadding,
+              gap: gapSmall,
+            }}
+          >
+            <TextInput
+              multiline
+              value={commentText}
+              onChangeText={(value) => {
+                setCommentText(value);
+                if (commentError) {
+                  setCommentError(null);
+                }
+              }}
+              placeholder="Nhập bình luận của bạn..."
+              placeholderTextColor="#94A3B8"
+              className="text-slate-700"
+              style={{
+                minHeight: responsiveSpacing(96, { min: 80, max: 140 }),
+                fontSize: responsiveFontSize(14),
+                lineHeight: responsiveFontSize(20, { min: 18 }),
+              }}
+              editable={canSubmitComment}
+              scrollEnabled
+            />
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleSubmitComment}
+              disabled={
+                !canSubmitComment ||
+                isCommentSubmitting ||
+                !commentText.trim()
+              }
+              className="items-center justify-center bg-red-600"
+              style={{
+                borderRadius: cardRadius,
+                paddingVertical: gapSmall,
+                opacity:
+                  !canSubmitComment || isCommentSubmitting || !commentText.trim()
+                    ? 0.6
+                    : 1,
+              }}
+            >
+              <Text
+                className="font-semibold text-white"
+                style={{ fontSize: responsiveFontSize(14) }}
+              >
+                {isCommentSubmitting ? 'Đang gửi...' : 'Gửi bình luận'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {commentError ? (
+            <Text
+              className="text-red-500"
+              style={{ fontSize: responsiveFontSize(13) }}
+            >
+              {commentError}
+            </Text>
+          ) : null}
+          {!canSubmitComment ? (
+            <Text
+              className="text-slate-500"
+              style={{ fontSize: responsiveFontSize(13) }}
+            >
+              Không thể gửi bình luận cho bài viết này
+            </Text>
+          ) : null}
+          {commentsLoading ? (
+            <View className="items-center justify-center" style={{ paddingVertical: gapMedium }}>
+              <ActivityIndicator size="small" color="#DC2626" />
+            </View>
+          ) : commentsError ? (
+            <Text
+              className="text-slate-500"
+              style={{ fontSize: responsiveFontSize(14) }}
+            >
+              {commentsErrorMessage}
+            </Text>
+          ) : comments.length ? (
+            <View style={{ gap: gapSmall }}>
+              {comments.map((comment) => (
+                <View
+                  key={comment.id}
+                  className="border border-slate-200 bg-white"
+                  style={{
+                    borderRadius: cardRadius,
+                    padding: cardPadding,
+                    gap: gapSmall / 2,
+                  }}
+                >
+                  <Text
+                    className="font-semibold text-slate-900"
+                    style={{ fontSize: responsiveFontSize(14) }}
+                  >
+                    {comment.author}
+                  </Text>
+                  <Text
+                    className="text-slate-400"
+                    style={{ fontSize: responsiveFontSize(12) }}
+                  >
+                    {formatDateTime(comment.createdAt)}
+                  </Text>
+                  <Text
+                    className="text-slate-600"
+                    style={{
+                      fontSize: responsiveFontSize(14),
+                      lineHeight: responsiveFontSize(20, { min: 18 }),
+                    }}
+                  >
+                    {comment.content}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text
+              className="text-slate-500"
+              style={{ fontSize: responsiveFontSize(14) }}
+            >
+              Chưa có bình luận nào hãy là người đầu tiên chia sẻ ý kiến!
+            </Text>
+          )}
+          {hasMoreComments ? (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => fetchMoreComments()}
+              disabled={isFetchingMoreComments}
+              className="items-center justify-center border border-slate-200 bg-white"
+              style={{
+                borderRadius: cardRadius,
+                paddingVertical: gapSmall,
+                marginTop: gapSmall,
+                opacity: isFetchingMoreComments ? 0.6 : 1,
+              }}
+            >
+              {isFetchingMoreComments ? (
+                <ActivityIndicator size="small" color="#DC2626" />
+              ) : (
+                <Text
+                  className="font-semibold text-red-600"
+                  style={{ fontSize: responsiveFontSize(13) }}
+                >
+                  Tai them binh luan
+                </Text>
+              )}
+            </TouchableOpacity>
+          ) : null}
         </View>
       </View>
     </ScrollView>

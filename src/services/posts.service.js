@@ -146,6 +146,64 @@ const hydrateLikeCount = async (post, source) => {
   return post;
 };
 
+const mapComment = (comment = {}) => {
+  const id =
+    toNumber(comment.id) ??
+    toNumber(comment.comment_id) ??
+    toNumber(comment.commentId) ??
+    comment.uuid ??
+    `comment-${Date.now()}`;
+
+  return {
+    id,
+    content:
+      comment.content ??
+      comment.comment ??
+      comment.body ??
+      '',
+    author:
+      comment.author_name ??
+      comment.author ??
+      comment.user_name ??
+      comment.user?.name ??
+      'Nguoi dung',
+    createdAt:
+      comment.created_at ??
+      comment.updated_at ??
+      new Date().toISOString(),
+    raw: comment,
+  };
+};
+
+const normalizeCommentResponse = (response) => {
+  if (!response) return [];
+  if (Array.isArray(response)) return response;
+  if (Array.isArray(response?.comments)) return response.comments;
+  if (Array.isArray(response?.items)) return response.items;
+  if (Array.isArray(response?.data)) return response.data;
+  if (Array.isArray(response?.data?.rows)) return response.data.rows;
+  if (Array.isArray(response?.data?.items)) return response.data.items;
+  if (Array.isArray(response?.data?.comments)) return response.data.comments;
+  if (Array.isArray(response?.rows)) return response.rows;
+  if (Array.isArray(response?.list)) return response.list;
+  return [];
+};
+
+const fetchArticleDetailById = async (articleId) => {
+  const targetId = toNumber(articleId);
+  if (!Number.isFinite(targetId)) return null;
+  try {
+    const response = await apiClient.get(`article/detail/${targetId}`);
+    return response?.data ?? response;
+  } catch (error) {
+    if (error?.status === 404) {
+      return null;
+    }
+    console.warn('Failed to fetch article detail by id', targetId, error);
+    return null;
+  }
+};
+
 export const postsService = {
   async listPosts(params) {
     const response = await apiClient.get('article', { params });
@@ -210,7 +268,11 @@ export const postsService = {
 
     let article;
 
-    if (slugCandidate) {
+    if (hasNumericFallback) {
+      article = await fetchArticleDetailById(numericIdFallback);
+    }
+
+    if (!article && slugCandidate) {
       const slug = String(slugCandidate).trim();
       if (slug) {
         try {
@@ -238,6 +300,85 @@ export const postsService = {
     if (!article) return null;
     const post = mapArticleToPost(article);
     return hydrateLikeCount(post, article);
+  },
+
+  async listComments(articleId, { page = 1, limit = 10, parentId } = {}) {
+    const targetId = toNumber(articleId);
+    if (!Number.isFinite(targetId)) {
+      return { items: [] };
+    }
+    const params = {
+      page,
+      limit,
+    };
+    if (parentId !== undefined && parentId !== null) {
+      const parentNumeric = toNumber(parentId);
+      if (Number.isFinite(parentNumeric)) {
+        params.parent_id = parentNumeric;
+      }
+    }
+    const response = await apiClient.get(`article/show-comment/${targetId}`, {
+      params,
+    });
+    const payload = response ?? {};
+    const dataSource = payload?.data ?? payload;
+    const commentsArray = normalizeCommentResponse(dataSource);
+    const metaSource =
+      payload?.meta ??
+      payload?.data?.meta ??
+      payload?.metadata ??
+      null;
+    const resolvedMeta = metaSource
+      ? {
+          page: toNumber(metaSource.page) ?? page,
+          limit: toNumber(metaSource.limit) ?? limit,
+          total: toNumber(metaSource.total),
+          mode: metaSource.mode ?? (parentId ? 'replies' : 'top_level'),
+          parentId:
+            toNumber(metaSource.parent_id) ??
+            toNumber(metaSource.parentId) ??
+            (parentId ?? null),
+        }
+      : {
+          page,
+          limit,
+          total: undefined,
+          mode: parentId ? 'replies' : 'top_level',
+          parentId: parentId ?? null,
+        };
+    return {
+      items: commentsArray
+        .map(mapComment)
+        .filter((comment) => Boolean(comment?.content)),
+      meta: resolvedMeta,
+    };
+  },
+
+  async createComment(articleId, payload = {}) {
+    const targetId = toNumber(articleId);
+    if (!Number.isFinite(targetId)) {
+      throw new Error('Invalid article id');
+    }
+    const body = {
+      content: payload?.content ?? payload?.comment ?? '',
+    };
+    if (payload?.parentId !== undefined && payload?.parentId !== null) {
+      const parentNumeric = toNumber(payload.parentId);
+      if (Number.isFinite(parentNumeric)) {
+        body.parent_id = parentNumeric;
+      }
+    }
+    const response = await apiClient.post(`article/comment/${targetId}`, { body });
+    const data = response?.data ?? response;
+    const mapped = mapComment(data);
+    if (mapped?.content) {
+      return mapped;
+    }
+    return mapComment({
+      id: `local-${Date.now()}`,
+      content: body.content,
+      created_at: new Date().toISOString(),
+    });
   },
 
   async createPost(payload) {
