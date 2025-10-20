@@ -64,6 +64,83 @@ const adaptProfile = (payload) => {
   };
 };
 
+const mapArticle = (item) => {
+  if (!item) return null;
+  const publishedAt =
+    item.publishedAt ??
+    item.published_at ??
+    item.createdAt ??
+    item.created_at ??
+    null;
+
+  return {
+    id: item.id ?? null,
+    title: item.title ?? '',
+    slug: item.slug ?? null,
+    summary: item.summary ?? '',
+    status: item.status ?? 'unknown',
+    imageUrl:
+      item.imageUrl ??
+      item.image_url ??
+      item.main_image_url ??
+      item.mainImageUrl ??
+      null,
+    videoUrl: item.main_video_url ?? item.videoUrl ?? null,
+    publishedAt,
+    createdAt: item.createdAt ?? item.created_at ?? null,
+    updatedAt: item.updatedAt ?? item.updated_at ?? null,
+    viewCount: item.viewCount ?? item.view_count ?? 0,
+    commentCount: item.commentCount ?? item.comment_count ?? 0,
+    isHot: Boolean(item.isHot ?? item.is_hot ?? false),
+    isAnalysis: Boolean(item.isAnalysis ?? item.is_analysis ?? false),
+    topicId: item.topicId ?? item.topic_id ?? null,
+    raw: item,
+  };
+};
+
+const adaptProfileArticles = (payload) => {
+  const source = payload?.data ?? payload ?? {};
+  const rawItems =
+    normalizeList(source.items).length
+      ? normalizeList(source.items)
+      : normalizeList(source.rows);
+
+  const items = rawItems
+    .map(mapArticle)
+    .filter(Boolean);
+
+  const paginationSource = source.pagination ?? source.meta ?? {};
+  const page =
+    paginationSource.page ??
+    paginationSource.currentPage ??
+    paginationSource.pageNumber ??
+    source.page ??
+    1;
+  const limit =
+    paginationSource.limit ??
+    paginationSource.per_page ??
+    paginationSource.perPage ??
+    source.limit ??
+    rawItems.length;
+  const total = paginationSource.total ?? paginationSource.totalItems ?? source.total ?? items.length;
+
+  const totalPages =
+    paginationSource.totalPages ??
+    paginationSource.total_pages ??
+    (limit ? Math.ceil(total / limit) : 1);
+
+  return {
+    items,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+    },
+    raw: source,
+  };
+};
+
 export const profileService = {
   async getProfile(userId) {
     if (!userId) {
@@ -71,5 +148,14 @@ export const profileService = {
     }
     const response = await apiClient.get(`profile/${userId}`);
     return adaptProfile(response);
+  },
+  async getProfileArticles(userId, params) {
+    if (!userId) {
+      throw new Error('Missing userId to fetch profile articles');
+    }
+    const response = await apiClient.get(`profile/${userId}/article`, {
+      params,
+    });
+    return adaptProfileArticles(response);
   },
 };

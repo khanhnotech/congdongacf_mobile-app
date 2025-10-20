@@ -89,6 +89,20 @@ export const useAuth = () => {
       if (nextUser) {
         queryClient.setQueryData(QUERY_KEYS.AUTH.ME, nextUser);
       }
+      const targetUserId =
+        nextUser?.id ??
+        resolvedUser?.id ??
+        current.user?.id ??
+        null;
+      if (targetUserId) {
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.PROFILE.DETAIL(targetUserId),
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['profile', targetUserId, 'articles'],
+          exact: false,
+        });
+      }
     },
   });
 

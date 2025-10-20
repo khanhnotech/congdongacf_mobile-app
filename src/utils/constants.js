@@ -47,6 +47,7 @@ export const TAB_ORDER = [
 export const QUERY_KEYS = {
   PROFILE: {
     DETAIL: (id) => ['profile', id],
+    ARTICLES: (id, params = {}) => ['profile', id, 'articles', params],
   },
   AUTH: {
     ME: ['auth', 'me'],
