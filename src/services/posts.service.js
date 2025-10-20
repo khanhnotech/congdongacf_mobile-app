@@ -175,6 +175,20 @@ export const postsService = {
     };
   },
 
+  async listNewPosts(params) {
+    const response = await apiClient.get('article/new', { params });
+    const { data, meta } = extractData(response);
+    const posts = data.map(mapArticleToPost);
+    const items = await Promise.all(
+      posts.map((post, index) => hydrateLikeCount(post, data[index])),
+    );
+
+    return {
+      items,
+      meta,
+    };
+  },
+
   async getPost(identifier) {
     if (!identifier) return null;
 

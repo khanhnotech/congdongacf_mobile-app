@@ -306,6 +306,10 @@ export const usePosts = (postIdentifier, { pageSize = DEFAULT_PAGE_SIZE } = {}) 
       { queryKey: QUERY_KEYS.POSTS.TREND },
       (oldData) => applyListOverrides(oldData),
     );
+    queryClient.setQueriesData(
+      { queryKey: QUERY_KEYS.POSTS.NEW },
+      (oldData) => applyListOverrides(oldData),
+    );
 
     const detailQueries = queryClient
       .getQueryCache()
@@ -372,6 +376,13 @@ export const usePosts = (postIdentifier, { pageSize = DEFAULT_PAGE_SIZE } = {}) 
     mutationFn: postsService.createPost,
     onSuccess: (createdPost) => {
       queryClient.setQueryData(QUERY_KEYS.POSTS.LIST, (previous) => {
+        if (!previous) return { items: [createdPost], meta: undefined };
+        const items = Array.isArray(previous.items)
+          ? [createdPost, ...previous.items]
+          : [createdPost];
+        return { ...previous, items };
+      });
+      queryClient.setQueryData(QUERY_KEYS.POSTS.NEW, (previous) => {
         if (!previous) return { items: [createdPost], meta: undefined };
         const items = Array.isArray(previous.items)
           ? [createdPost, ...previous.items]

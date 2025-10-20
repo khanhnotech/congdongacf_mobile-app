@@ -61,6 +61,7 @@ export const useTogglePostLike = () => {
       if (!Number.isFinite(articleId)) {
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.POSTS.LIST });
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.POSTS.TREND });
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.POSTS.NEW });
         return;
       }
 
@@ -73,6 +74,10 @@ export const useTogglePostLike = () => {
       );
       queryClient.setQueriesData(
         { queryKey: QUERY_KEYS.POSTS.TREND },
+        (oldData) => applyLikeUpdate(oldData, articleId, liked, normalizedLikeCount),
+      );
+      queryClient.setQueriesData(
+        { queryKey: QUERY_KEYS.POSTS.NEW },
         (oldData) => applyLikeUpdate(oldData, articleId, liked, normalizedLikeCount),
       );
 

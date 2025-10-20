@@ -5,6 +5,7 @@ import Register from '../screens/ACF/Auth/Register';
 import ForgotPassword from '../screens/ACF/Auth/ForgotPassword';
 import ActivitiesListScreen from '../screens/ACF/Activities/ActivitiesList';
 import ActivityDetail from '../screens/ACF/Activities/ActivityDetail';
+import EventDetail from '../screens/ACF/Notifications/EventDetail';
 import LegalList from '../screens/ACF/Legal/LegalList';
 import LegalDetail from '../screens/ACF/Legal/LegalDetail';
 import TopicsGrid from '../screens/ACF/Topics/TopicsGrid';
@@ -39,6 +40,11 @@ export default function RootNavigator() {
         name={ROUTES.STACK.ACTIVITY_DETAIL}
         component={ActivityDetail}
         options={{ headerShown: true, title: 'Chi tiết hoạt động' }}
+      />
+      <Stack.Screen
+        name={ROUTES.STACK.EVENT_DETAIL}
+        component={EventDetail}
+        options={{ headerShown: true, title: 'Chi tiết sự kiện' }}
       />
       <Stack.Screen
         name={ROUTES.STACK.LEGAL_LIST}

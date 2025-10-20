@@ -11,6 +11,7 @@ export const linking = {
         path: '',
         screens: {
           [ROUTES.TABS.HOME]: 'home',
+          [ROUTES.TABS.LATEST]: 'article/new',
           [ROUTES.TABS.ACTIVITIES]: 'activities',
           [ROUTES.TABS.HUB]: 'hub',
           [ROUTES.TABS.NOTIFICATIONS]: 'notifications',
@@ -19,6 +20,7 @@ export const linking = {
       },
       [ROUTES.STACK.LEGAL_LIST]: 'legal',
       [ROUTES.STACK.ACTIVITY_DETAIL]: 'activities/:id',
+      [ROUTES.STACK.EVENT_DETAIL]: 'event/:eventId',
       [ROUTES.STACK.LEGAL_DETAIL]: 'legal/:id',
       [ROUTES.STACK.TOPICS_GRID]: 'topics',
       [ROUTES.STACK.TOPIC_POSTS]: 'topics/:id',

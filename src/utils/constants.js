@@ -7,6 +7,7 @@ export const ROUTES = {
   MAIN_TABS: 'MainTabs',
   TABS: {
     HOME: 'Home',
+    LATEST: 'Latest',
     PORTAL: 'Portal',
     ACTIVITIES: 'Activities',
     HUB: 'AcfHub',
@@ -18,6 +19,7 @@ export const ROUTES = {
   },
   STACK: {
     ACTIVITY_DETAIL: 'ActivityDetail',
+    EVENT_DETAIL: 'EventDetail',
     LEGAL_DETAIL: 'LegalDetail',
     TOPIC_POSTS: 'TopicPosts',
     MEDIA_VIEWER: 'MediaViewer',
@@ -50,6 +52,7 @@ export const QUERY_KEYS = {
     LIST: ['posts'],
     DETAIL: (id) => ['posts', id],
     TREND: ['posts', 'trend'],
+    NEW: ['posts', 'new'],
   },
   TOPICS: {
     LIST: ['topics'],

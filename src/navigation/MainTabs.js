@@ -24,6 +24,7 @@ import ActivitiesList from '../screens/ACF/Activities/ActivitiesList';
 import AcfHub from '../screens/ACF/Hub/AcfHub';
 import NotificationsList from '../screens/ACF/Notifications/NotificationsList';
 import ProfileTab from '../screens/ACF/Profile/ProfileTab';
+import LatestPosts from '../screens/ACF/Post/LatestPosts';
 import { ROUTES } from '../utils/constants';
 import { useAuth } from '../hooks/useAuth';
 import { useResponsiveSpacing } from '../hooks/useResponsiveSpacing';
@@ -36,32 +37,35 @@ function clamp(value, min, max) {
 }
 
 const tabLabels = {
-  [ROUTES.TABS.HOME]: 'Trang ch\u1EE7',
-  [ROUTES.TABS.PORTAL]: 'Xu h\u01B0\u1EDDng',
-  [ROUTES.TABS.ACTIVITIES]: '\u0110\u0103ng b\u00E0i',
+  [ROUTES.TABS.HOME]: 'Trang chủ',
+  [ROUTES.TABS.LATEST]: 'Mới nhất',
+  [ROUTES.TABS.PORTAL]: 'Xu hướng',
+  [ROUTES.TABS.ACTIVITIES]: 'Đăng bài',
   [ROUTES.TABS.HUB]: 'ACF',
-  [ROUTES.TABS.NOTIFICATIONS]: 'Th\u00F4ng b\u00E1o',
-  [ROUTES.TABS.PROFILE]: 'T\u00F4i',
+  [ROUTES.TABS.NOTIFICATIONS]: 'Thông báo',
+  [ROUTES.TABS.PROFILE]: 'Tôi',
 };
+
 
 const tabIconMap = {
   [ROUTES.TABS.HOME]: 'home-variant',
+  [ROUTES.TABS.LATEST]: 'clock-outline',
   [ROUTES.TABS.PORTAL]: 'trending-up',
   [ROUTES.TABS.ACTIVITIES]: 'pencil-plus',
   [ROUTES.TABS.NOTIFICATIONS]: 'bell-badge',
   [ROUTES.TABS.PROFILE]: 'account-circle',
 };
 
-
 const menuItems = [
   { label: 'Trang chủ', icon: 'home-outline', action: { type: 'tab', screen: ROUTES.TABS.HOME } },
-  { label: 'Mới nhất', icon: 'calendar-check-outline', action: { type: 'tab', screen: ROUTES.TABS.ACTIVITIES } },
-  { label: 'Xu hướng', icon: 'format-list-bulleted', action: { type: 'stack', screen: ROUTES.STACK.TOPICS_GRID } },
-  { label: 'Bình luận', icon: 'layers-triple-outline', action: { type: 'tab', screen: ROUTES.TABS.HUB } },
+  { label: 'Mới nhất', icon: 'new-box', action: { type: 'tab', screen: ROUTES.TABS.LATEST } },
+  { label: 'Xu hướng', icon: 'trending-up', action: { type: 'tab', screen: ROUTES.TABS.PORTAL } },
   { label: 'Văn bản pháp luật', icon: 'file-document-outline', action: { type: 'stack', screen: ROUTES.STACK.LEGAL_LIST } },
   { label: 'Media', icon: 'image-multiple-outline', action: { type: 'stack', screen: ROUTES.STACK.MEDIA_LIBRARY } },
   { label: 'Liên hệ', icon: 'email-outline', action: { type: 'stack', screen: ROUTES.STACK.CONTACT_FORM } },
 ];
+
+
 
 const menuFooter = [
   { label: 'Về chúng tôi', icon: 'information-outline' },
@@ -407,6 +411,17 @@ export default function MainTabs() {
             name={ROUTES.TABS.HOME}
             component={HomeScreen}
             options={{ title: tabLabels[ROUTES.TABS.HOME] }}
+          />
+          <Tab.Screen
+            name={ROUTES.TABS.LATEST}
+            component={LatestPosts}
+            options={{
+              title: tabLabels[ROUTES.TABS.LATEST],
+              tabBarButton: () => null,
+              tabBarIcon: () => null,
+              tabBarLabel: () => null,
+              tabBarItemStyle: { display: 'none' },
+            }}
           />
           <Tab.Screen
             name={ROUTES.TABS.PORTAL}

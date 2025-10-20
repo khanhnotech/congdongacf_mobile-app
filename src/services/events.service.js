@@ -40,6 +40,15 @@ const mapEvent = (row = {}) => {
   };
 };
 
+const asArray = (value) => {
+  if (Array.isArray(value)) return value;
+  if (value && Array.isArray(value.rows)) return value.rows;
+  if (value && Array.isArray(value.data)) return value.data;
+  if (value && Array.isArray(value.items)) return value.items;
+  if (value && Array.isArray(value.results)) return value.results;
+  return [];
+};
+
 const extractPayload = (response) => {
   if (!response) {
     return { rows: [], pagination: undefined };
@@ -47,13 +56,18 @@ const extractPayload = (response) => {
   if (Array.isArray(response)) {
     return { rows: response, pagination: undefined };
   }
-  const data = response.data ?? response.items ?? response.rows ?? [];
-  const pagination =
+  const dataCandidate =
+    response.data ?? response.items ?? response.rows ?? response.results ?? [];
+  const rows = asArray(dataCandidate);
+  const paginationCandidate =
+    dataCandidate?.pagination ??
+    dataCandidate?.meta ??
     response.pagination ??
     response.meta ??
     response.data?.pagination ??
+    response.data?.meta ??
     undefined;
-  return { rows: data, pagination };
+  return { rows, pagination: paginationCandidate };
 };
 
 export const eventsService = {
@@ -68,7 +82,14 @@ export const eventsService = {
   async getEvent(id) {
     if (!id) return null;
     const response = await apiClient.get(`event/${id}`);
-    const row = response?.data ?? response;
+    const candidate =
+      response?.data ??
+      response?.item ??
+      response?.event ??
+      response;
+    const row =
+      (Array.isArray(candidate) ? candidate[0] : candidate) ??
+      response;
     if (!row) return null;
     return mapEvent(row);
   },
