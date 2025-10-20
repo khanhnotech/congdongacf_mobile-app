@@ -1,13 +1,23 @@
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../../hooks/useAuth';
+import { useMyPosts } from '../../../hooks/usePosts';
 import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 import { ROUTES } from '../../../utils/constants';
-import { formatName } from '../../../utils/format';
+import { formatDateTime, formatName } from '../../../utils/format';
+
+const STATUS_LABELS = {
+  pending: 'Chờ duyệt',
+  public: 'Đã duyệt',
+  approved: 'Đã duyệt',
+  draft: 'Nháp',
+  rejected: 'Bị từ chối',
+};
 
 export default function MyProfile() {
   const navigation = useNavigation();
   const { user, logout, logoutStatus } = useAuth();
+  const myPostsQuery = useMyPosts();
   const {
     screenPadding,
     verticalPadding,
@@ -20,6 +30,25 @@ export default function MyProfile() {
     buttonPaddingVertical,
     listContentPaddingBottom,
   } = useResponsiveSpacing();
+
+  const myPosts = myPostsQuery.data?.items ?? [];
+  const isMyPostsLoading = myPostsQuery.isLoading;
+  const myPostsError = myPostsQuery.error;
+
+  const handleOpenPostDetail = (post) => {
+    const postId =
+      post?.articleId ??
+      post?.article_id ??
+      (post?.raw?.article_id ?? post?.raw?.id);
+    const postSlug = post?.slug ?? post?.raw?.slug;
+    if (!postId && !postSlug) {
+      return;
+    }
+    navigation.navigate(ROUTES.STACK.POST_DETAIL, {
+      postId,
+      postSlug,
+    });
+  };
 
   if (!user) {
     return (
@@ -156,6 +185,67 @@ export default function MyProfile() {
         >
           Danh sách bài viết/hoạt động bạn tham gia sẽ xuất hiện tại đây.
         </Text>
+
+        {isMyPostsLoading ? (
+          <View
+            className="items-center justify-center"
+            style={{ paddingVertical: gapMedium }}
+          >
+            <ActivityIndicator size="small" color="#DC2626" />
+          </View>
+        ) : myPostsError ? (
+          <Text
+            className="text-slate-500"
+            style={{ fontSize: responsiveFontSize(14) }}
+          >
+            Không thể tải danh sách bài viết của bạn. Vui lòng thử lại sau.
+          </Text>
+        ) : myPosts.length ? (
+          <View style={{ gap: gapSmall }}>
+            {myPosts.map((post) => (
+              <TouchableOpacity
+                key={post.id ?? post.slug ?? `post-${Math.random()}`}
+                activeOpacity={0.85}
+                onPress={() => handleOpenPostDetail(post)}
+                className="border border-slate-200 bg-slate-50"
+                style={{
+                  borderRadius: cardRadius,
+                  padding: cardPadding,
+                  gap: gapSmall / 2,
+                }}
+              >
+                <Text
+                  className="font-semibold text-slate-900"
+                  style={{ fontSize: responsiveFontSize(16) }}
+                >
+                  {post.title || 'Bài viết không tiêu đề'}
+                </Text>
+                <Text
+                  className="text-slate-500"
+                  style={{ fontSize: responsiveFontSize(13) }}
+                >
+                  {formatDateTime(post.createdAt)}
+                </Text>
+                <View
+                  className="self-start rounded-full bg-amber-100 px-3 py-1"
+                >
+                  <Text
+                    className="text-sm font-semibold text-amber-700"
+                  >
+                    {STATUS_LABELS[post.status] ?? post.status ?? 'Không xác định'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : (
+          <Text
+            className="text-slate-500"
+            style={{ fontSize: responsiveFontSize(14) }}
+          >
+            Bạn chưa có bài viết nào.
+          </Text>
+        )}
       </View>
     </View>
   );

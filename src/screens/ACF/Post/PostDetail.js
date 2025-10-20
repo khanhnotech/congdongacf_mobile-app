@@ -198,7 +198,7 @@ export default function PostDetail() {
   }
 
   if (detailQuery.isLoading) {
-    return <LoadingSpinner message="Dang tai bai viet..." />;
+    return <LoadingSpinner message="Đang tải bài viết..." />;
   }
 
   if (!post) {

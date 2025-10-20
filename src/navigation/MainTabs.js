@@ -346,6 +346,14 @@ export default function MainTabs() {
     setMenuVisible(false);
     rootNavigation.navigate(ROUTES.STACK.PORTAL);
   }, [rootNavigation]);
+  const handleOpenCreatePost = useCallback(() => {
+    setMenuVisible(false);
+    if (!user) {
+      rootNavigation.navigate(ROUTES.AUTH.LOGIN);
+      return;
+    }
+    rootNavigation.navigate(ROUTES.STACK.CREATE_POST);
+  }, [rootNavigation, setMenuVisible, user]);
 
   const TAB_BASE = 60;
   const padBottom = Math.max(insets.bottom, 10);
@@ -432,6 +440,12 @@ export default function MainTabs() {
             name={ROUTES.TABS.ACTIVITIES}
             component={ActivitiesList}
             options={{ title: tabLabels[ROUTES.TABS.ACTIVITIES] }}
+            listeners={{
+              tabPress: (event) => {
+                event.preventDefault();
+                handleOpenCreatePost();
+              },
+            }}
           />
           <Tab.Screen
             name={ROUTES.TABS.HUB}
@@ -460,6 +474,7 @@ export default function MainTabs() {
     </>
   );
 }
+
 
 
 

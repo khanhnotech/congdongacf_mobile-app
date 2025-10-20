@@ -95,8 +95,24 @@ const request = async (method, path, { body, headers = {}, params, ...init } = {
     ...init,
   };
 
-  if (body) {
-    fetchOptions.body = JSON.stringify(body);
+  const isFormData =
+    typeof FormData !== 'undefined' && body instanceof FormData;
+
+  if (isFormData) {
+    if (fetchOptions.headers['Content-Type']) {
+      delete fetchOptions.headers['Content-Type'];
+    }
+    fetchOptions.body = body;
+  } else if (body !== undefined && body !== null) {
+    if (
+      typeof body === 'object' &&
+      !(body instanceof Blob) &&
+      !(body instanceof ArrayBuffer)
+    ) {
+      fetchOptions.body = JSON.stringify(body);
+    } else {
+      fetchOptions.body = body;
+    }
   }
 
   let url = buildUrl(path);

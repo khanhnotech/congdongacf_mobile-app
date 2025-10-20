@@ -55,7 +55,7 @@ export const usePostComments = (
       }),
     enabled: typeof numericId === 'number',
     initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
+    getNextPageParam: (lastPage, allPages) => {
       const meta = lastPage?.meta ?? {};
       const currentPage = toNumber(meta.page);
       const pageLimit = toNumber(meta.limit) ?? limit;
@@ -65,7 +65,7 @@ export const usePostComments = (
         if ((lastPage?.items ?? []).length < pageLimit) {
           return undefined;
         }
-        return 2;
+        return (allPages?.length ?? 0) + 1;
       }
 
       if (typeof total === 'number') {

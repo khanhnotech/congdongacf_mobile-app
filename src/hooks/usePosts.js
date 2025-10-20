@@ -375,24 +375,42 @@ export const usePosts = (postIdentifier, { pageSize = DEFAULT_PAGE_SIZE } = {}) 
     mutationKey: ['posts', 'create'],
     mutationFn: postsService.createPost,
     onSuccess: (createdPost) => {
-      queryClient.setQueryData(QUERY_KEYS.POSTS.LIST, (previous) => {
-        if (!previous) return { items: [createdPost], meta: undefined };
+      const normalizedPost = {
+        ...createdPost,
+        status: createdPost?.status ?? 'pending',
+        raw: { ...(createdPost?.raw ?? {}), status: createdPost?.status ?? 'pending' },
+      };
+      const shouldAddToPublicLists = normalizedPost.status !== 'pending';
+      if (shouldAddToPublicLists) {
+        queryClient.setQueryData(QUERY_KEYS.POSTS.LIST, (previous) => {
+          if (!previous) return { items: [normalizedPost], meta: undefined };
+          const items = Array.isArray(previous.items)
+            ? [normalizedPost, ...previous.items]
+            : [normalizedPost];
+          return { ...previous, items };
+        });
+        queryClient.setQueryData(QUERY_KEYS.POSTS.NEW, (previous) => {
+          if (!previous) return { items: [normalizedPost], meta: undefined };
+          const items = Array.isArray(previous.items)
+            ? [normalizedPost, ...previous.items]
+            : [normalizedPost];
+          return { ...previous, items };
+        });
+      }
+      queryClient.setQueryData(QUERY_KEYS.POSTS.MY, (previous) => {
+        if (!previous) return { items: [normalizedPost], meta: undefined };
         const items = Array.isArray(previous.items)
-          ? [createdPost, ...previous.items]
-          : [createdPost];
+          ? [normalizedPost, ...previous.items]
+          : [normalizedPost];
         return { ...previous, items };
       });
-      queryClient.setQueryData(QUERY_KEYS.POSTS.NEW, (previous) => {
-        if (!previous) return { items: [createdPost], meta: undefined };
-        const items = Array.isArray(previous.items)
-          ? [createdPost, ...previous.items]
-          : [createdPost];
-        return { ...previous, items };
-      });
-      queryClient.setQueryData(
-        QUERY_KEYS.POSTS.DETAIL(createdPost.id),
-        createdPost,
-      );
+      if (normalizedPost.id !== undefined && normalizedPost.id !== null) {
+        queryClient.setQueryData(
+          QUERY_KEYS.POSTS.DETAIL(normalizedPost.id),
+          normalizedPost,
+        );
+      }
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.POSTS.MY });
     },
   });
 
@@ -402,4 +420,14 @@ export const usePosts = (postIdentifier, { pageSize = DEFAULT_PAGE_SIZE } = {}) 
     createPost: createMutation.mutateAsync,
     createStatus: createMutation.status,
   };
+};
+
+export const useMyPosts = (params) => {
+  const user = useAuthStore((state) => state.user);
+  return useQuery({
+    queryKey: QUERY_KEYS.POSTS.MY,
+    queryFn: () => postsService.listMyPosts(params),
+    enabled: Boolean(user?.id),
+    staleTime: 60 * 1000,
+  });
 };

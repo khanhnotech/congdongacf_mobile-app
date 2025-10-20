@@ -95,10 +95,11 @@ const mapArticleToPost = (article = {}) => {
       article.main_image_url ??
       article.mainImageUrl ??
       article.main_image ??
-      article.mainImage ??
-      article.thumbnail ??
-      article.thumbnail_url ??
-      null,
+    article.mainImage ??
+    article.thumbnail ??
+    article.thumbnail_url ??
+    null,
+    status: article.status ?? article.state ?? article.approval_status ?? null,
     likeCount,
     liked,
     tags: Array.isArray(article.tags) ? article.tags : [],
@@ -109,9 +110,29 @@ const mapArticleToPost = (article = {}) => {
 
 const extractData = (payload) => {
   if (!payload) return { items: [], meta: undefined };
-  const data = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-  const meta = payload.meta ?? payload.pagination ?? undefined;
-  return { data, meta };
+  const rootData =
+    Array.isArray(payload.data)
+      ? payload.data
+      : Array.isArray(payload.items)
+        ? payload.items
+        : Array.isArray(payload.rows)
+          ? payload.rows
+          : Array.isArray(payload)
+            ? payload
+            : Array.isArray(payload.data?.items)
+              ? payload.data.items
+              : Array.isArray(payload.data?.rows)
+                ? payload.data.rows
+                : Array.isArray(payload.data?.data)
+                  ? payload.data.data
+                  : [];
+  const meta =
+    payload.meta ??
+    payload.pagination ??
+    payload.data?.meta ??
+    payload.data?.pagination ??
+    undefined;
+  return { data: rootData, meta };
 };
 
 const fetchArticleLikeCount = async (articleId) => {
@@ -243,6 +264,16 @@ export const postsService = {
 
     return {
       items,
+      meta,
+    };
+  },
+
+  async listMyPosts(params) {
+    const response = await apiClient.get('article/my', { params });
+    const { data, meta } = extractData(response);
+    const posts = data.map(mapArticleToPost);
+    return {
+      items: posts,
       meta,
     };
   },
@@ -381,25 +412,117 @@ export const postsService = {
     });
   },
 
-  async createPost(payload) {
-    try {
-      const response = await apiClient.post('article', { body: payload });
-      const article = response?.data ?? response;
-      return mapArticleToPost(article);
-    } catch (error) {
-      console.warn('Create article failed, falling back to local mock', error);
-      return mapArticleToPost({
-        id: `draft-${Date.now()}`,
-        title: payload?.title,
-        summary: payload?.excerpt,
-        content: payload?.content,
-        cover: payload?.cover,
-        author_name: 'B\u1EA1n',
-        created_at: new Date().toISOString(),
-        topic_id: payload?.topicId,
-        like_count: 0,
-        liked: false,
+  async createPost(payload = {}) {
+    const formData = new FormData();
+    const title = payload.title ?? '';
+    const summary = payload.summary ?? payload.excerpt ?? '';
+    const content = payload.content ?? '';
+    const status = payload.status ?? 'pending';
+
+    formData.append('title', title);
+    formData.append('summary', summary);
+    formData.append('content', content);
+    formData.append('status', status);
+
+    if (payload.topicId !== undefined && payload.topicId !== null) {
+      formData.append('topic_id', String(payload.topicId));
+    }
+
+    if (payload.mainVideoUrl) {
+      formData.append('main_video_url', payload.mainVideoUrl);
+    }
+
+    const hasStructure =
+      payload.structure &&
+      typeof payload.structure === 'object' &&
+      Array.isArray(payload.structure.sections);
+
+    if (hasStructure) {
+      try {
+        formData.append('structure', JSON.stringify(payload.structure));
+      } catch (structureError) {
+        console.warn(
+          'Unable to serialize structure, falling back to default.',
+          structureError,
+        );
+      }
+    } else if (content) {
+      formData.append(
+        'structure',
+        JSON.stringify({
+          sections: [
+            {
+              title: '',
+              content,
+              media: [],
+            },
+          ],
+        }),
+      );
+    }
+
+    if (payload.coverFile) {
+      formData.append('cover', payload.coverFile);
+    }
+
+    if (Array.isArray(payload.mediaFiles)) {
+      payload.mediaFiles.forEach((entry, index) => {
+        if (!entry) return;
+        const file = entry.file ?? entry;
+        if (!file?.uri && !file?.path) return;
+        const name =
+          entry.fileKey ??
+          file.name ??
+          `media-${index}.jpg`;
+        const mediaType =
+          file.type && file.type.includes('/') ? file.type : 'image/jpeg';
+        const fileToAppend = {
+          uri: file.uri ?? file.path,
+          type: mediaType,
+          name,
+        };
+        formData.append('media', fileToAppend);
       });
+    }
+
+    try {
+      const response = await apiClient.post('article/create', { body: formData });
+      const base = response?.data ?? response;
+      const createdId =
+        toNumber(base?.id) ?? toNumber(base?.article_id) ?? undefined;
+      if (createdId) {
+        try {
+          const detail = await postsService.getPost({ id: createdId });
+          if (detail) {
+            return {
+              ...detail,
+              status: detail.status ?? status,
+              raw: { ...detail.raw, status: detail.status ?? status },
+            };
+          }
+        } catch (detailError) {
+          console.warn('Unable to fetch created article detail', detailError);
+        }
+      }
+
+      const fallbackArticle = mapArticleToPost({
+        id: base?.id ?? `pending-${Date.now()}`,
+        slug: base?.slug,
+        title,
+        summary,
+        content,
+        status,
+        main_image_url: base?.image ?? null,
+        created_at: new Date().toISOString(),
+      });
+      return {
+        ...fallbackArticle,
+        status,
+        raw: { ...fallbackArticle.raw, status },
+      };
+    } catch (error) {
+      console.warn('Create article failed', error);
+      throw error;
     }
   },
 
@@ -417,3 +540,4 @@ export const postsService = {
     };
   },
 };
+
