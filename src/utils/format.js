@@ -18,8 +18,22 @@ export const truncate = (value, limit = 120) => {
 
 export const formatName = (user) => {
   if (!user) return '';
-  const { firstName = '', lastName = '' } = user;
-  return `${firstName} ${lastName}`.trim();
+  const firstName =
+    user.firstName ??
+    user.first_name ??
+    '';
+  const lastName =
+    user.lastName ??
+    user.last_name ??
+    '';
+  const combined = `${firstName} ${lastName}`.trim();
+  if (combined) return combined;
+  if (user.fullName ?? user.full_name) return user.fullName ?? user.full_name;
+  if (user.displayName ?? user.display_name) return user.displayName ?? user.display_name;
+  if (user.name) return user.name;
+  if (user.username) return user.username;
+  if (user.email) return user.email;
+  return '';
 };
 
 export const formatDateTime = (value) => {

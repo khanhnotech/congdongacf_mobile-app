@@ -79,8 +79,16 @@ export const useAuth = () => {
     mutationKey: ['auth', 'updateProfile'],
     mutationFn: authService.updateProfile,
     onSuccess: (nextUser) => {
-      setAuth({ token, refreshToken, user: nextUser });
-      queryClient.setQueryData(QUERY_KEYS.AUTH.ME, nextUser);
+      const current = useAuthStore.getState();
+      const resolvedUser = nextUser ?? current.user;
+      setAuth({
+        token: current.token,
+        refreshToken: current.refreshToken,
+        user: resolvedUser,
+      });
+      if (nextUser) {
+        queryClient.setQueryData(QUERY_KEYS.AUTH.ME, nextUser);
+      }
     },
   });
 

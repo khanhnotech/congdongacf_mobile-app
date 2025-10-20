@@ -17,10 +17,117 @@ const normalizeLoginPayload = (credentials = {}) => {
     credentials.secret;
 
   if (!identifier || !password) {
-    throw new Error('Thiếu thông tin đăng nhập.');
+    throw new Error('Thieu thong tin dang nhap.');
   }
 
   return { identifier, password };
+};
+
+const splitFullName = (value) => {
+  if (!value) return { first: '', last: '' };
+  const normalized = String(value).trim();
+  if (!normalized) return { first: '', last: '' };
+  const parts = normalized.split(/\s+/);
+  if (parts.length === 1) {
+    return { first: parts[0], last: '' };
+  }
+  return {
+    first: parts.slice(0, -1).join(' '),
+    last: parts.at(-1) ?? '',
+  };
+};
+
+const normalizeUserProfile = (raw = {}) => {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const profile = raw.profile && typeof raw.profile === 'object' ? raw.profile : {};
+
+  let firstName =
+    raw.firstName ??
+    raw.first_name ??
+    profile.firstName ??
+    profile.first_name ??
+    '';
+  let lastName =
+    raw.lastName ??
+    raw.last_name ??
+    profile.lastName ??
+    profile.last_name ??
+    '';
+
+  if ((!firstName || !lastName) && raw.name) {
+    const { first, last } = splitFullName(raw.name);
+    if (!firstName) firstName = first;
+    if (!lastName) lastName = last;
+  }
+
+  if ((!firstName || !lastName) && raw.display_name) {
+    const { first, last } = splitFullName(raw.display_name);
+    if (!firstName) firstName = first;
+    if (!lastName) lastName = last;
+  }
+
+  const fullName =
+    raw.fullName ??
+    raw.full_name ??
+    raw.name ??
+    raw.displayName ??
+    raw.display_name ??
+    `${firstName} ${lastName}`.trim();
+
+  const bio =
+    raw.bio ??
+    raw.description ??
+    profile.bio ??
+    profile.description ??
+    '';
+
+  const avatar =
+    raw.avatar ??
+    raw.avatar_url ??
+    profile.avatar ??
+    profile.avatar_url ??
+    raw.setting_avatar ??
+    null;
+
+  const cover =
+    raw.cover ??
+    raw.cover_photo ??
+    profile.cover ??
+    profile.cover_photo ??
+    null;
+
+  return {
+    id: raw.id ?? raw.user_id ?? profile.user_id ?? null,
+    firstName,
+    lastName,
+    fullName:
+      fullName ||
+      [firstName, lastName].filter(Boolean).join(' ') ||
+      raw.username ||
+      raw.email ||
+      '',
+    email: raw.email ?? profile.email ?? '',
+    username: raw.username ?? profile.username ?? '',
+    phone: raw.phone ?? profile.phone ?? '',
+    role: raw.role ?? profile.role ?? 'user',
+    avatar,
+    cover,
+    bio,
+    createdAt:
+      raw.createdAt ??
+      raw.created_at ??
+      profile.createdAt ??
+      profile.created_at ??
+      null,
+    updatedAt:
+      raw.updatedAt ??
+      raw.updated_at ??
+      profile.updatedAt ??
+      profile.updated_at ??
+      null,
+    raw,
+  };
 };
 
 const adaptAuthPayload = (payload) => {
@@ -35,17 +142,19 @@ const adaptAuthPayload = (payload) => {
     source?.refreshToken ??
     source?.tokens?.refreshToken ??
     source?.data?.refreshToken;
-  const user =
+  const userSource =
     source?.user ??
     source?.profile ??
     source?.data?.user ??
     source?.data;
 
-  if (!token || !user) {
-    throw new Error('Phản hồi đăng nhập không hợp lệ.');
+  const normalizedUser = normalizeUserProfile(userSource);
+
+  if (!token || !normalizedUser) {
+    throw new Error('Phan hoi dang nhap khong hop le.');
   }
 
-  return { token, refreshToken, user };
+  return { token, refreshToken, user: normalizedUser };
 };
 
 export const authService = {
@@ -63,7 +172,8 @@ export const authService = {
   async me() {
     try {
       const response = await apiClient.get('auth/me');
-      return response?.data?.user ?? null;
+      const user = response?.data?.user ?? null;
+      return normalizeUserProfile(user);
     } catch (error) {
       if (error?.status === 401 || error?.status === 404) {
         return null;
@@ -80,7 +190,8 @@ export const authService = {
     const response = await apiClient.put('auth/profile', {
       body: changes,
     });
-    return response?.data?.user ?? null;
+    const user = response?.data?.user ?? null;
+    return normalizeUserProfile(user);
   },
   async logout({ refreshToken, token } = {}) {
     try {
