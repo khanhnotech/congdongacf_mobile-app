@@ -58,7 +58,7 @@ export default function TopicsGrid() {
       </Text>
 
       <FlatList
-        data={listQuery.data ?? []}
+        data={listQuery.data?.items ?? []}
         keyExtractor={(item) => item.id}
         numColumns={2}
         columnWrapperStyle={{ gap: tileGap, marginBottom: tileGap }}
@@ -73,6 +73,7 @@ export default function TopicsGrid() {
             onPress={() =>
               navigation.navigate(ROUTES.STACK.TOPIC_POSTS, {
                 topicId: item.id,
+                topicSlug: item.slug,
               })
             }
             className="bg-white shadow-sm"

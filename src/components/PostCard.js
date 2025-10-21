@@ -2,6 +2,7 @@ import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useResponsiveSpacing } from '../hooks/useResponsiveSpacing';
+import { useAuthRedirect } from '../hooks/useAuthRedirect';
 import { formatDateTime } from '../utils/format';
 import { ROUTES } from '../utils/constants';
 
@@ -9,6 +10,7 @@ export default function PostCard({ post, onPress, onToggleLike, likePending = fa
   if (!post) return null;
 
   const navigation = useNavigation();
+  const { requireAuth } = useAuthRedirect();
   const {
     cardPadding,
     cardRadius,
@@ -182,9 +184,11 @@ export default function PostCard({ post, onPress, onToggleLike, likePending = fa
           }}
           iconColor={isLiked ? '#DC2626' : '#DC2626'}
           onPress={() => {
-            if (onToggleLike) {
-              onToggleLike(post);
-            }
+            requireAuth(() => {
+              if (onToggleLike) {
+                onToggleLike(post);
+              }
+            }, 'thích bài viết này')();
           }}
           disabled={likePending}
           chipPadding={{
@@ -202,6 +206,42 @@ export default function PostCard({ post, onPress, onToggleLike, likePending = fa
           style={{
             marginHorizontal: gapSmall / 2,
             marginBottom: gapSmall,
+          }}
+          onPress={() => {
+            requireAuth(() => {
+              // Navigate to post detail with comment focus
+              const params = {};
+              const slugCandidate =
+                typeof post?.slug === 'string' && post.slug.trim() ? post.slug.trim() : null;
+              if (slugCandidate) {
+                params.postSlug = slugCandidate;
+              }
+
+              const resolveNumericId = (value) => {
+                if (value === undefined || value === null || value === '') return null;
+                const number = Number(value);
+                return Number.isFinite(number) ? number : null;
+              };
+
+              const numericIdCandidates = [
+                post?.articleId,
+                post?.raw?.article_id,
+                post?.raw?.id,
+                post?.id,
+              ];
+
+              for (const candidate of numericIdCandidates) {
+                const numeric = resolveNumericId(candidate);
+                if (numeric !== null) {
+                  params.postId = numeric;
+                  break;
+                }
+              }
+
+              if (Object.keys(params).length) {
+                navigation.navigate(ROUTES.STACK.POST_DETAIL, { ...params, focusComments: true });
+              }
+            }, 'bình luận bài viết này')();
           }}
           chipPadding={{
             horizontal: pillHorizontal,

@@ -1,16 +1,16 @@
 import { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { useRoute } from '@react-navigation/native';
+import { useQuery } from '@tanstack/react-query';
 import PostCard from '../../../components/PostCard';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyState from '../../../components/EmptyState';
-import { usePosts } from '../../../hooks/usePosts';
+import { topicsService } from '../../../services/topics.service';
 import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 
 export default function TopicPosts() {
   const route = useRoute();
-  const { topicId, highlightedPostId } = route.params ?? {};
-  const { listQuery } = usePosts();
+  const { topicId, topicSlug, highlightedPostId } = route.params ?? {};
   const {
     screenPadding,
     verticalPadding,
@@ -23,38 +23,30 @@ export default function TopicPosts() {
   } = useResponsiveSpacing();
   const itemLength = responsiveSpacing(280, { min: 240, max: 340 });
 
+  // Sử dụng API endpoint /topic/slug để lấy topic + articles
+  const topicQuery = useQuery({
+    queryKey: ['topic', topicSlug],
+    queryFn: () => topicsService.getTopicBySlug(topicSlug),
+    enabled: !!topicSlug,
+  });
+
   const {
-    data: postsData,
-    isLoading: postsLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
+    data: topicData,
+    isLoading: topicLoading,
     isRefetching,
     refetch,
-  } = listQuery;
+  } = topicQuery;
 
-  const posts = useMemo(() => {
-    const allPosts = postsData?.items ?? [];
-    return topicId ? allPosts.filter((post) => post.topicId === topicId) : allPosts;
-  }, [postsData, topicId]);
-
-  if (postsLoading) {
-    return <LoadingSpinner message="Đang tải bài viết theo chủ đề..." />;
-  }
-
-  const handleLoadMore = useCallback(() => {
-    if (!hasNextPage || isFetchingNextPage) return;
-    fetchNextPage();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  const topic = topicData?.topic;
+  const posts = topicData?.articles ?? [];
 
   const renderFooter = useMemo(() => {
-    if (!isFetchingNextPage) return null;
-    return (
-      <View style={{ marginTop: gapMedium }}>
-        <ActivityIndicator size="small" color="#DC2626" />
-      </View>
-    );
-  }, [gapMedium, isFetchingNextPage]);
+    return null; // Không cần pagination cho topic posts
+  }, []);
+
+  if (topicLoading) {
+    return <LoadingSpinner message="Đang tải bài viết theo chủ đề..." />;
+  }
 
   return (
     <View
@@ -74,7 +66,7 @@ export default function TopicPosts() {
         className="font-bold text-slate-900"
         style={{ fontSize: responsiveFontSize(28) }}
       >
-        {topicId ?? 'Tất cả chủ đề'}
+        {topic?.name ?? 'Chủ đề'}
       </Text>
       <Text
         className="text-slate-500"
@@ -111,9 +103,7 @@ export default function TopicPosts() {
           offset: itemLength * index,
           index,
         })}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        refreshing={isRefetching && !postsLoading}
+        refreshing={isRefetching && !topicLoading}
         onRefresh={refetch}
       />
     </View>

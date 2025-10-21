@@ -115,6 +115,7 @@ export default function HomeScreen() {
           </Text>
         </View>
 
+        {/* Topic Filter Section */}
         <View style={{ gap: gapSmall }}>
           <View
             className="flex-row items-center justify-between"
@@ -125,12 +126,6 @@ export default function HomeScreen() {
               style={{ fontSize: responsiveFontSize(18) }}
             >
               Chủ đề nổi bật
-            </Text>
-            <Text
-              className="uppercase tracking-wider text-red-600"
-              style={{ fontSize: responsiveFontSize(12, { min: 11 }) }}
-            >
-              Xem tất cả
             </Text>
           </View>
           <ScrollView
@@ -143,17 +138,19 @@ export default function HomeScreen() {
               active={activeTopic === null}
               onPress={() => setActiveTopic(null)}
             />
-            {(topicsQuery.data ?? []).map((topic) => (
-              <TopicChip
-                key={topic.id}
-                label={topic.name}
-                color={topic.color}
-                active={activeTopic === topic.id}
-                onPress={() => {
-                  setActiveTopic(activeTopic === topic.id ? null : topic.id);
-                }}
-              />
-            ))}
+            {(topicsQuery.data?.items ?? [])
+              .sort((a, b) => (b.article_count || 0) - (a.article_count || 0))
+              .map((topic) => (
+                <TopicChip
+                  key={topic.id}
+                  label={`${topic.name} (${topic.article_count || 0})`}
+                  color={topic.color}
+                  active={activeTopic === topic.id}
+                  onPress={() => {
+                    setActiveTopic(activeTopic === topic.id ? null : topic.id);
+                  }}
+                />
+              ))}
           </ScrollView>
         </View>
 

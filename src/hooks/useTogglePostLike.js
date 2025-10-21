@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { postsService } from '../services/posts.service';
 import { useAuthStore } from '../store/auth.store';
 import { useLikesStore } from '../store/likes.store';
+import { useAuthRedirect } from './useAuthRedirect';
 import { QUERY_KEYS } from '../utils/constants';
 
 const toNumber = (value) => {
@@ -53,6 +54,7 @@ const applyLikeUpdate = (oldData, articleId, liked, likeCount) => {
 
 export const useTogglePostLike = () => {
   const queryClient = useQueryClient();
+  const { requireAuth } = useAuthRedirect();
 
   const mutation = useMutation({
     mutationKey: ['posts', 'toggle-like'],
@@ -156,7 +158,7 @@ export const useTogglePostLike = () => {
   });
 
   return {
-    toggleLike: mutation.mutateAsync,
+    toggleLike: requireAuth(mutation.mutateAsync, 'thích bài viết'),
     toggleLikeStatus: mutation.status,
     toggleLikeError: mutation.error,
     resetToggleLike: mutation.reset,

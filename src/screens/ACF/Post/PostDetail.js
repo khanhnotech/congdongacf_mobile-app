@@ -7,6 +7,7 @@ import EmptyState from '../../../components/EmptyState';
 import { usePosts } from '../../../hooks/usePosts';
 import { useTogglePostLike } from '../../../hooks/useTogglePostLike';
 import { usePostComments } from '../../../hooks/usePostComments';
+import { useAuthRedirect } from '../../../hooks/useAuthRedirect';
 import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 import { formatDateTime } from '../../../utils/format';
 
@@ -39,6 +40,7 @@ const splitIntoParagraphs = (value) => {
 
 export default function PostDetail() {
   const route = useRoute();
+  const { requireAuth } = useAuthRedirect();
   const {
     postId,
     postSlug,
@@ -180,6 +182,8 @@ export default function PostDetail() {
       setCommentError(message);
     }
   }, [articleId, commentText, createComment]);
+
+  const handleSubmitCommentWithAuth = requireAuth(handleSubmitComment, 'bình luận bài viết này');
 
   if (!detailTarget) {
     return (
@@ -475,7 +479,7 @@ export default function PostDetail() {
             />
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={handleSubmitComment}
+              onPress={handleSubmitCommentWithAuth}
               disabled={
                 !canSubmitComment ||
                 isCommentSubmitting ||
