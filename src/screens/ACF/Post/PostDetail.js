@@ -443,7 +443,7 @@ export default function PostDetail() {
             className="font-semibold text-slate-900"
             style={{ fontSize: responsiveFontSize(18) }}
           >
-            Binh luan
+            Bình luận
           </Text>
           <View
             className="border border-slate-200 bg-white"
@@ -590,7 +590,7 @@ export default function PostDetail() {
                   className="font-semibold text-red-600"
                   style={{ fontSize: responsiveFontSize(13) }}
                 >
-                  Tai them binh luan
+                  Tải thêm bình luận
                 </Text>
               )}
             </TouchableOpacity>
