@@ -456,7 +456,7 @@ export default function MainTabs() {
     }
   };
 
-  const handleSearch = () => { rootNavigation.navigate(ROUTES.STACK.TOPICS_GRID); };
+  const handleSearch = () => { rootNavigation.navigate(ROUTES.STACK.SEARCH); };
   const handlePortalShortcut = useCallback(() => {
     setMenuVisible(false);
     rootNavigation.navigate(ROUTES.STACK.PORTAL);

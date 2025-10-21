@@ -29,6 +29,7 @@ export const linking = {
       [ROUTES.STACK.PROFILE_VIEW]: 'user/:id',
       [ROUTES.STACK.CREATE_POST]: 'posts/new',
       [ROUTES.STACK.POST_DETAIL]: 'articles/slug/:postSlug',
+      [ROUTES.STACK.SEARCH]: 'search',
     },
   },
 };

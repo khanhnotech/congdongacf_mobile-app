@@ -32,6 +32,7 @@ export const ROUTES = {
     TOPICS_GRID: 'TopicsGrid',
     MEDIA_LIBRARY: 'MediaLibrary',
     PORTAL: 'Portal',
+    SEARCH: 'Search',
   },
 };
 
