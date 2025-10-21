@@ -8,7 +8,7 @@ import { ROUTES } from '../../../utils/constants';
 
 export default function Login() {
   const navigation = useNavigation();
-  const { login } = useAuth();
+  const { login, googleLogin, googleLoginStatus } = useAuth();
   const [email, setEmail] = useState('khanhmobileuser');
   const [password, setPassword] = useState('Khanh123!');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,6 +45,24 @@ export default function Login() {
       setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      setErrorMessage(null);
+      await googleLogin();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: ROUTES.MAIN_TABS }],
+      });
+    } catch (error) {
+      console.warn('Google Login error', error);
+      const message =
+        error?.data?.message ??
+        error?.message ??
+        'Đăng nhập Google thất bại, vui lòng thử lại.';
+      setErrorMessage(message);
     }
   };
 
@@ -203,6 +221,54 @@ export default function Login() {
               style={{ fontSize: responsiveFontSize(16) }}
             >
               {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View
+            className="flex-row items-center"
+            style={{ marginVertical: gapMedium }}
+          >
+            <View
+              className="flex-1 bg-slate-300"
+              style={{ height: 1 }}
+            />
+            <Text
+              className="mx-4 text-slate-500"
+              style={{ fontSize: responsiveFontSize(14) }}
+            >
+              hoặc
+            </Text>
+            <View
+              className="flex-1 bg-slate-300"
+              style={{ height: 1 }}
+            />
+          </View>
+
+          {/* Google Login Button */}
+          <TouchableOpacity
+            onPress={handleGoogleLogin}
+            disabled={googleLoginStatus === 'pending'}
+            className={`bg-white border border-slate-200 ${googleLoginStatus === 'pending' ? 'opacity-60' : ''}`}
+            style={{
+              borderRadius: cardRadius - 2,
+              paddingVertical: buttonPaddingVertical,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <MaterialCommunityIcons
+              name="google"
+              size={responsiveFontSize(20)}
+              color="#4285F4"
+              style={{ marginRight: gapSmall }}
+            />
+            <Text
+              className="font-semibold text-slate-700"
+              style={{ fontSize: responsiveFontSize(16) }}
+            >
+              {googleLoginStatus === 'pending' ? 'Đang đăng nhập...' : 'Đăng nhập với Google'}
             </Text>
           </TouchableOpacity>
 

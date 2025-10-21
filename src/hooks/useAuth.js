@@ -75,6 +75,15 @@ export const useAuth = () => {
     },
   });
 
+  const googleLoginMutation = useMutation({
+    mutationKey: ['auth', 'googleLogin'],
+    mutationFn: authService.googleLogin,
+    onSuccess: ({ token: nextToken, refreshToken: nextRefresh, user: nextUser }) => {
+      setAuth({ token: nextToken, refreshToken: nextRefresh, user: nextUser });
+      queryClient.setQueryData(QUERY_KEYS.AUTH.ME, nextUser);
+    },
+  });
+
   const updateProfileMutation = useMutation({
     mutationKey: ['auth', 'updateProfile'],
     mutationFn: authService.updateProfile,
@@ -134,6 +143,8 @@ export const useAuth = () => {
     loginStatus: loginMutation.status,
     register: registerMutation.mutateAsync,
     registerStatus: registerMutation.status,
+    googleLogin: googleLoginMutation.mutateAsync,
+    googleLoginStatus: googleLoginMutation.status,
     updateProfile: updateProfileMutation.mutateAsync,
     updateProfileStatus: updateProfileMutation.status,
     logout: logoutMutation.mutateAsync,

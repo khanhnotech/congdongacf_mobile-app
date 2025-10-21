@@ -247,6 +247,11 @@ export const authService = {
     await delay();
     return true;
   },
+  async googleLogin() {
+    const { googleAuthService } = await import('./googleAuth.service');
+    const response = await googleAuthService.signIn();
+    return adaptAuthPayload(response);
+  },
   async updateProfile(changes) {
     const body = buildEditProfilePayload(changes);
     const files = {
