@@ -28,6 +28,7 @@ import ProfileTab from '../screens/ACF/Profile/ProfileTab';
 import LatestPosts from '../screens/ACF/Post/LatestPosts';
 import { ROUTES } from '../utils/constants';
 import { useAuth } from '../hooks/useAuth';
+import { useProfileDetail } from '../hooks/useProfile';
 import { useResponsiveSpacing } from '../hooks/useResponsiveSpacing';
 
 const Tab = createBottomTabNavigator();
@@ -74,68 +75,8 @@ const menuFooter = [
   { label: 'Chính sách riêng tư', icon: 'shield-lock-outline' },
 ];
 
-const chuyenDeItems = [
-  'Văn bản pháp luật',
-  'Tin chuyên đề',
-  'Bàn tròn thương hiệu',
-  'Chống hàng giả',
-  'Bảo vệ người tiêu dùng',
-  'Kinh doanh - Tiêu dùng',
-  'Gian lận thương mại',
-];
 
-function ChuyenDeBlock() {
-  return (
-    <View style={{ marginTop: 16 }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: '#DC2626',
-          paddingVertical: 8,
-          paddingHorizontal: 12,
-          borderRadius: 6,
-        }}
-      >
-        <MaterialCommunityIcons
-          name="book-open-variant"
-          size={24}
-          color="#fff"
-          style={{ marginRight: 6 }}
-        />
-        <Text style={{ color: '#fff', fontWeight: '700' }}>CHUYÊN ĐỀ</Text>
-      </View>
-
-      <View style={{ marginTop: 8 }}>
-        {chuyenDeItems.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingVertical: 6,
-              paddingHorizontal: 36,
-            }}
-            activeOpacity={0.7}
-          >
-            <View
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 3,
-                backgroundColor: '#374151',
-                marginRight: 8,
-              }}
-            />
-            <Text style={{ fontSize: 20, color: '#111827', fontWeight: 'normal' }}>{item}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-}
-
-function AppHeader({ title, onOpenMenu, onSearch, onAvatarPress, avatarInitials, avatarColor = '#DC2626' }) {
+function AppHeader({ title, onOpenMenu, onSearch, onAvatarPress, avatarInitials, avatarColor = '#DC2626', userAvatar }) {
   const insets = useSafeAreaInsets();
   const padTop = Math.max(insets.top, 8);
   const spacing = useResponsiveSpacing();
@@ -194,8 +135,20 @@ function AppHeader({ title, onOpenMenu, onSearch, onAvatarPress, avatarInitials,
           <TouchableOpacity onPress={onSearch} className="items-center justify-center bg-slate-100" style={{ height: actionSize, width: actionSize, borderRadius: actionSize / 2, marginRight: 6 }}>
             <MaterialCommunityIcons name="magnify" size={responsiveFontSize(22)} color="#1E293B" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={onAvatarPress} className="items-center justify-center" style={{ backgroundColor: avatarColor, height: actionSize, width: actionSize, borderRadius: actionSize / 2 }}>
-            <Text className="font-semibold text-white" style={{ fontSize: responsiveFontSize(14) }}>{avatarInitials ?? 'A'}</Text>
+          <TouchableOpacity onPress={onAvatarPress} className="items-center justify-center" style={{ backgroundColor: avatarColor, height: actionSize, width: actionSize, borderRadius: actionSize / 2, overflow: 'hidden' }}>
+            {userAvatar ? (
+              <Image 
+                source={{ uri: userAvatar }} 
+                style={{ 
+                  height: actionSize, 
+                  width: actionSize, 
+                  borderRadius: actionSize / 2 
+                }}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text className="font-semibold text-white" style={{ fontSize: responsiveFontSize(14) }}>{avatarInitials ?? 'A'}</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -235,8 +188,6 @@ function MenuDrawer({ visible, onClose, onSelect }) {
               ))}
             </View>
 
-            {/* ✅ Thêm block Chuyên đề ở đây */}
-            <ChuyenDeBlock />
           </ScrollView>
 
           <View className="border-t border-slate-200" style={{ marginTop: gapLarge, paddingTop: gapMedium, gap: gapSmall }}>
@@ -468,6 +419,11 @@ function DraggablePortalButton({ onPress }) {
 export default function MainTabs() {
   const insets = useSafeAreaInsets();
   const { user, logout, logoutStatus } = useAuth();
+  const profileQuery = useProfileDetail(user?.id, {
+    enabled: Boolean(user?.id),
+    staleTime: 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000, // 5 minutes
+  });
   const [menuVisible, setMenuVisible] = useState(false);
   const [accountModalVisible, setAccountModalVisible] = useState(false);
   const rootNavigation = useNavigation();
@@ -478,6 +434,17 @@ export default function MainTabs() {
     const last = user.lastName?.[0] ?? '';
     return `${first}${last}`.trim().toUpperCase() || 'AC';
   }, [user]);
+
+  // Lấy avatar từ profile giống như MyProfile.js
+  const userAvatar = useMemo(() => {
+    if (!user) return null;
+    
+    const profileDetail = profileQuery.data;
+    
+    // Sử dụng cùng logic như MyProfile.js: profileDetail?.avatar ?? user.avatar ?? null
+    const avatar = profileDetail?.avatar ?? user?.avatar ?? null;
+    return avatar || null;
+  }, [user, profileQuery.data]);
 
   const handleMenuSelect = (action) => {
     setMenuVisible(false);
@@ -572,6 +539,7 @@ export default function MainTabs() {
                 onAvatarPress={handleAvatarPress}
                 avatarInitials={avatarInitials}
                 avatarColor={user ? '#DC2626' : '#94A3B8'}
+                userAvatar={userAvatar}
               />
             ),
             tabBarShowLabel: true,
