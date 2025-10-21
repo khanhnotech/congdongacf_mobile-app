@@ -78,7 +78,9 @@ export const useAuth = () => {
   const updateProfileMutation = useMutation({
     mutationKey: ['auth', 'updateProfile'],
     mutationFn: authService.updateProfile,
-    onSuccess: (nextUser) => {
+    onSuccess: (result) => {
+      const nextUser = result?.user ?? null;
+      const profilePayload = result?.profile ?? null;
       const current = useAuthStore.getState();
       const resolvedUser = nextUser ?? current.user;
       setAuth({
@@ -95,9 +97,16 @@ export const useAuth = () => {
         current.user?.id ??
         null;
       if (targetUserId) {
-        queryClient.invalidateQueries({
-          queryKey: QUERY_KEYS.PROFILE.DETAIL(targetUserId),
-        });
+        if (profilePayload) {
+          queryClient.setQueryData(
+            QUERY_KEYS.PROFILE.DETAIL(targetUserId),
+            profilePayload
+          );
+        } else {
+          queryClient.invalidateQueries({
+            queryKey: QUERY_KEYS.PROFILE.DETAIL(targetUserId),
+          });
+        }
         queryClient.invalidateQueries({
           queryKey: ['profile', targetUserId, 'articles'],
           exact: false,

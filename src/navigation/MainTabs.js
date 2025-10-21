@@ -12,6 +12,7 @@ import {
   Image,
   PanResponder,
   useWindowDimensions,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -252,6 +253,152 @@ function MenuDrawer({ visible, onClose, onSelect }) {
   );
 }
 
+function AccountModal({
+  visible,
+  onClose,
+  onNavigateProfile,
+  onUpgrade,
+  onReport,
+  onSettings,
+  onLogout,
+  isLoggingOut,
+  user,
+  avatarInitials,
+}) {
+  const insets = useSafeAreaInsets();
+  const spacing = useResponsiveSpacing();
+
+  if (!visible || !user) return null;
+
+  const {
+    screenPadding,
+    cardRadius,
+    gapSmall,
+    cardPadding,
+    responsiveFontSize,
+    verticalPadding,
+  } = spacing;
+
+  const topOffset = Math.max(insets.top, verticalPadding) + gapSmall * 2;
+  const menuWidth = 220;
+  const displayName = user.fullName ?? user.name ?? user.displayName ?? avatarInitials ?? 'Tài khoản';
+  const displayEmail = user.email ?? user.username ?? '';
+
+  const options = [
+    { key: 'profile', label: 'Hồ sơ cá nhân', icon: 'account-circle-outline', action: onNavigateProfile },
+    { key: 'upgrade', label: 'Nâng cấp gói', icon: 'crown-outline', action: onUpgrade },
+    { key: 'report', label: 'Báo cáo hàng giả', icon: 'alert-decagram-outline', action: onReport },
+    { key: 'settings', label: 'Cài đặt', icon: 'cog-outline', action: onSettings },
+  ];
+
+  return (
+    <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
+      <View style={{ flex: 1 }}>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={onClose}
+          style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.15)' }}
+        />
+        <View
+          pointerEvents="box-none"
+          style={{
+            position: 'absolute',
+            top: topOffset,
+            right: screenPadding,
+            width: menuWidth,
+          }}
+        >
+          <View
+            style={{
+              borderRadius: cardRadius,
+              backgroundColor: '#FFFFFF',
+              paddingVertical: gapSmall,
+              paddingHorizontal: cardPadding * 0.9,
+              shadowColor: '#0F172A',
+              shadowOpacity: 0.12,
+              shadowRadius: 16,
+              shadowOffset: { width: 0, height: 8 },
+              elevation: 12,
+              gap: gapSmall * 0.6,
+            }}
+          >
+            <View style={{ gap: gapSmall * 0.2 }}>
+              <Text
+                className="font-semibold text-slate-900"
+                style={{ fontSize: responsiveFontSize(15) }}
+                numberOfLines={1}
+              >
+                {displayName}
+              </Text>
+              {displayEmail ? (
+                <Text
+                  className="text-slate-500"
+                  style={{ fontSize: responsiveFontSize(12) }}
+                  numberOfLines={1}
+                >
+                  {displayEmail}
+                </Text>
+              ) : null}
+            </View>
+
+            <View style={{ height: 1, backgroundColor: '#E2E8F0' }} />
+
+            <View style={{ gap: gapSmall * 0.4 }}>
+              {options.map((item) => (
+                <TouchableOpacity
+                  key={item.key}
+                  onPress={item.action}
+                  activeOpacity={0.85}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: gapSmall,
+                    paddingVertical: gapSmall * 0.6,
+                  }}
+                >
+                  <MaterialCommunityIcons
+                    name={item.icon}
+                    size={responsiveFontSize(18)}
+                    color="#1E293B"
+                  />
+                  <Text
+                    className="flex-1 text-slate-800"
+                    style={{ fontSize: responsiveFontSize(14) }}
+                  >
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={{ height: 1, backgroundColor: '#E2E8F0' }} />
+
+            <TouchableOpacity
+              onPress={onLogout}
+              activeOpacity={0.85}
+              disabled={isLoggingOut}
+              className="bg-red-500"
+              style={{
+                borderRadius: cardRadius - 4,
+                paddingVertical: gapSmall * 0.8,
+                alignItems: 'center',
+                opacity: isLoggingOut ? 0.6 : 1,
+              }}
+            >
+              <Text
+                className="font-semibold text-white"
+                style={{ fontSize: responsiveFontSize(14) }}
+              >
+                {isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 const FLOATING_BUTTON_SIZE = 68;
 const FLOATING_MARGIN = 16;
 
@@ -320,8 +467,9 @@ function DraggablePortalButton({ onPress }) {
 
 export default function MainTabs() {
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+  const { user, logout, logoutStatus } = useAuth();
   const [menuVisible, setMenuVisible] = useState(false);
+  const [accountModalVisible, setAccountModalVisible] = useState(false);
   const rootNavigation = useNavigation();
 
   const avatarInitials = useMemo(() => {
@@ -355,6 +503,44 @@ export default function MainTabs() {
     rootNavigation.navigate(ROUTES.STACK.CREATE_POST);
   }, [rootNavigation, setMenuVisible, user]);
 
+  const handleAvatarPress = useCallback(() => {
+    if (!user) {
+      rootNavigation.navigate(ROUTES.AUTH.LOGIN);
+      return;
+    }
+    setAccountModalVisible(true);
+  }, [rootNavigation, user]);
+
+  const handleNavigateProfile = useCallback(() => {
+    setAccountModalVisible(false);
+    rootNavigation.navigate(ROUTES.MAIN_TABS, { screen: ROUTES.TABS.PROFILE });
+  }, [rootNavigation]);
+
+  const handleUpgrade = useCallback(() => {
+    setAccountModalVisible(false);
+    rootNavigation.navigate(ROUTES.MAIN_TABS, { screen: ROUTES.TABS.PORTAL });
+  }, [rootNavigation]);
+
+  const handleReport = useCallback(() => {
+    setAccountModalVisible(false);
+    rootNavigation.navigate(ROUTES.STACK.CONTACT_FORM);
+  }, [rootNavigation]);
+
+  const handleSettings = useCallback(() => {
+    setAccountModalVisible(false);
+    Alert.alert('Cài đặt', 'Tính năng đang được phát triển.');
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    logout()
+      .catch((error) => {
+        console.warn('Logout failed', error);
+      })
+      .finally(() => {
+        setAccountModalVisible(false);
+      });
+  }, [logout]);
+
   const TAB_BASE = 60;
   const padBottom = Math.max(insets.bottom, 10);
   const tabHeight = TAB_BASE + padBottom;
@@ -362,6 +548,18 @@ export default function MainTabs() {
   return (
     <>
       <MenuDrawer visible={menuVisible} onClose={() => setMenuVisible(false)} onSelect={handleMenuSelect} />
+      <AccountModal
+        visible={accountModalVisible}
+        onClose={() => setAccountModalVisible(false)}
+        onNavigateProfile={handleNavigateProfile}
+        onUpgrade={handleUpgrade}
+        onReport={handleReport}
+        onSettings={handleSettings}
+        onLogout={handleLogout}
+        isLoggingOut={logoutStatus === 'pending'}
+        user={user}
+        avatarInitials={avatarInitials}
+      />
       <View style={{ flex: 1 }}>
         <Tab.Navigator
           initialRouteName={ROUTES.TABS.HOME}
@@ -371,9 +569,7 @@ export default function MainTabs() {
                 title={tabLabels[route.name] ?? 'ACF Community'}
                 onOpenMenu={() => setMenuVisible(true)}
                 onSearch={handleSearch}
-                onAvatarPress={() =>
-                  rootNavigation.navigate(ROUTES.MAIN_TABS, { screen: ROUTES.TABS.PROFILE })
-                }
+                onAvatarPress={handleAvatarPress}
                 avatarInitials={avatarInitials}
                 avatarColor={user ? '#DC2626' : '#94A3B8'}
               />

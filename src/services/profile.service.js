@@ -91,9 +91,21 @@ const mapArticle = (item) => {
     updatedAt: item.updatedAt ?? item.updated_at ?? null,
     viewCount: item.viewCount ?? item.view_count ?? 0,
     commentCount: item.commentCount ?? item.comment_count ?? 0,
+    likeCount: Number.isFinite(Number(item.likeCount ?? item.like_count))
+      ? Number(item.likeCount ?? item.like_count)
+      : 0,
+    liked: Boolean(
+      item.liked ??
+      item.like ??
+      item.is_liked ??
+      item.raw?.liked ??
+      item.raw?.like
+    ),
     isHot: Boolean(item.isHot ?? item.is_hot ?? false),
     isAnalysis: Boolean(item.isAnalysis ?? item.is_analysis ?? false),
     topicId: item.topicId ?? item.topic_id ?? null,
+    author: item.author ?? item.author_name ?? item.raw?.author_name ?? null,
+    authorAvatar: item.authorAvatar ?? item.author_avatar ?? item.raw?.author_avatar ?? null,
     raw: item,
   };
 };

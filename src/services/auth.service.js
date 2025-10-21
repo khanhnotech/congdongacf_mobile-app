@@ -1,4 +1,5 @@
 import { apiClient } from './api';
+import { useAuthStore } from '../store/auth.store';
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -130,6 +131,66 @@ const normalizeUserProfile = (raw = {}) => {
   };
 };
 
+const buildEditProfilePayload = (changes = {}) => {
+  if (!changes || typeof changes !== 'object') return {};
+
+  const payload = {};
+  const trimString = (value) =>
+    typeof value === 'string' ? value.trim() : value;
+
+  if ('firstName' in changes || 'lastName' in changes) {
+    const first = trimString(changes.firstName) || '';
+    const last = trimString(changes.lastName) || '';
+    const displayName = `${first} ${last}`.trim();
+    if (displayName) {
+      payload.name = displayName;
+      payload.display_name = displayName;
+    }
+  }
+
+  if ('bio' in changes) {
+    const bio = trimString(changes.bio);
+    payload.description = typeof bio === 'string' ? bio : '';
+  }
+
+  const passthroughKeys = [
+    'phone',
+    'avatar_url',
+    'cover_photo',
+    'description',
+    'setting_avatar',
+    'display_name',
+    'birth_year',
+    'workplace',
+    'studied_at',
+    'live_at',
+    'link_code',
+    'privacy',
+    'business',
+  ];
+
+  passthroughKeys.forEach((key) => {
+    if (key in changes && payload[key] === undefined) {
+      payload[key] = changes[key];
+    }
+  });
+
+  if (!payload.name) {
+    const first = trimString(changes.firstName) || '';
+    const last = trimString(changes.lastName) || '';
+    const full = [first, last].filter(Boolean).join(' ');
+    if (full) {
+      payload.name = full;
+    }
+  }
+
+  if (!payload.display_name && payload.name) {
+    payload.display_name = payload.name;
+  }
+
+  return payload;
+};
+
 const adaptAuthPayload = (payload) => {
   const source = payload?.data ?? payload;
   const token =
@@ -187,11 +248,71 @@ export const authService = {
     return true;
   },
   async updateProfile(changes) {
-    const response = await apiClient.put('auth/profile', {
-      body: changes,
+    const body = buildEditProfilePayload(changes);
+    const files = {
+      avatar: changes?.avatarFile ?? null,
+      cover: changes?.coverFile ?? null,
+    };
+
+    const hasFiles = Boolean(files.avatar || files.cover);
+    const payload = hasFiles ? new FormData() : body;
+
+    if (hasFiles) {
+      Object.entries(body).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+        payload.append(key, typeof value === 'string' ? value : String(value));
+      });
+      if (files.avatar) {
+        payload.append('avatar', files.avatar);
+      }
+      if (files.cover) {
+        payload.append('cover', files.cover);
+      }
+    }
+
+    const response = await apiClient.post('profile/edit-user', {
+      body: payload,
     });
-    const user = response?.data?.user ?? null;
-    return normalizeUserProfile(user);
+    const profilePayload = response?.data ?? response ?? null;
+    const user = profilePayload?.user ?? profilePayload ?? null;
+    const normalized = normalizeUserProfile(user);
+    if (normalized) {
+      return { user: normalized, profile: profilePayload };
+    }
+
+    const current = useAuthStore.getState().user;
+    if (!current) return { user: null, profile: profilePayload };
+
+    const safeString = (value) =>
+      typeof value === 'string' ? value.trim() : '';
+
+    const hasFirst = Object.prototype.hasOwnProperty.call(changes ?? {}, 'firstName');
+    const hasLast = Object.prototype.hasOwnProperty.call(changes ?? {}, 'lastName');
+    const hasBio = Object.prototype.hasOwnProperty.call(changes ?? {}, 'bio');
+
+    const nextFirst = hasFirst ? safeString(changes.firstName) : current.firstName ?? '';
+    const nextLast = hasLast ? safeString(changes.lastName) : current.lastName ?? '';
+    const nextFullName = [nextFirst, nextLast].filter(Boolean).join(' ') || current.fullName || '';
+    const nextBio = hasBio ? safeString(changes.bio) : current.bio ?? '';
+
+    const fallbackUser = {
+      ...current,
+      firstName: nextFirst,
+      lastName: nextLast,
+      fullName: nextFullName,
+      bio: nextBio,
+      avatar: body.avatar_url ?? current.avatar,
+      cover: body.cover_photo ?? current.cover,
+      raw: {
+        ...(current.raw ?? {}),
+        name: body.name ?? current.raw?.name ?? nextFullName,
+        display_name: body.display_name ?? current.raw?.display_name ?? nextFullName,
+        description: body.description ?? current.raw?.description ?? nextBio,
+        avatar_url: body.avatar_url ?? current.raw?.avatar_url,
+        cover_photo: body.cover_photo ?? current.raw?.cover_photo,
+      },
+    };
+    return { user: fallbackUser, profile: profilePayload };
   },
   async logout({ refreshToken, token } = {}) {
     try {
