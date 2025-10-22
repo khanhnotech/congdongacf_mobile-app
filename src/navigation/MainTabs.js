@@ -30,6 +30,9 @@ import { ROUTES } from '../utils/constants';
 import { useAuth } from '../hooks/useAuth';
 import { useProfileDetail } from '../hooks/useProfile';
 import { useResponsiveSpacing } from '../hooks/useResponsiveSpacing';
+import { useChat } from '../hooks/useChat';
+import ChatBubble from '../components/ChatBubble';
+import ChatDialog from '../components/ChatDialog';
 
 const Tab = createBottomTabNavigator();
 
@@ -418,12 +421,13 @@ function DraggablePortalButton({ onPress }) {
 
 export default function MainTabs() {
   const insets = useSafeAreaInsets();
-  const { user, logout, logoutStatus } = useAuth();
+  const { user, logout, logoutStatus, isAuthenticated } = useAuth();
   const profileQuery = useProfileDetail(user?.id, {
     enabled: Boolean(user?.id),
     staleTime: 60 * 1000, // 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
+  const { isChatVisible, unreadCount, toggleChat, closeChat, sendMessage } = useChat();
   const [menuVisible, setMenuVisible] = useState(false);
   const [accountModalVisible, setAccountModalVisible] = useState(false);
   const rootNavigation = useNavigation();
@@ -635,6 +639,18 @@ export default function MainTabs() {
         </Tab.Navigator>
         <DraggablePortalButton onPress={handlePortalShortcut} />
       </View>
+      
+      {/* Chat Components - hiện cho tất cả user để test */}
+      <ChatBubble
+        onPress={toggleChat}
+        isVisible={!isChatVisible}
+        unreadCount={unreadCount}
+      />
+      <ChatDialog
+        visible={isChatVisible}
+        onClose={closeChat}
+        onSendMessage={sendMessage}
+      />
     </>
   );
 }
