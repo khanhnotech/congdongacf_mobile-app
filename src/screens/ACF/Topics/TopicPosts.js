@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useFocusEffect } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import PostCard from '../../../components/PostCard';
 import LoadingSpinner from '../../../components/LoadingSpinner';
@@ -39,6 +39,16 @@ export default function TopicPosts() {
 
   const topic = topicData?.topic;
   const posts = topicData?.articles ?? [];
+
+  // Refresh data when screen comes into focus (e.g., returning from PostDetail)
+  useFocusEffect(
+    useCallback(() => {
+      // Only refresh if we have data and it's not already loading
+      if (posts.length > 0 && !topicLoading) {
+        refetch();
+      }
+    }, [posts.length, topicLoading, refetch])
+  );
 
   const renderFooter = useMemo(() => {
     return null; // Không cần pagination cho topic posts

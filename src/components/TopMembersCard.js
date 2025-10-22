@@ -1,32 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Image, ActivityIndicator, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../hooks/useAuth';
 import { useAuthRedirect } from '../hooks/useAuthRedirect';
-import { ROUTES } from '../utils/constants';
+import { ROUTES, QUERY_KEYS } from '../utils/constants';
 import topService from '../services/top.service';
+import viewProfileService from '../services/viewProfile.service';
 
-const TopMembersCard = () => {
-  console.log('TopMembersCard: Component rendering');
-  
+const TopMembersCard = React.memo(() => {
   const navigation = useNavigation();
+  const { user } = useAuth();
   const { requireAuth } = useAuthRedirect();
+  const queryClient = useQueryClient();
   
   const [businessmenPage, setBusinessmenPage] = useState(1);
   const [kolsPage, setKolsPage] = useState(1);
   const [allBusinessmen, setAllBusinessmen] = useState([]);
   const [allKols, setAllKols] = useState([]);
+  const [followingMembers, setFollowingMembers] = useState(new Set());
+  const [loadingMembers, setLoadingMembers] = useState(new Set());
+  const [memberFollowers, setMemberFollowers] = useState(new Map());
+  
+  // Refs to preserve scroll position
+  const businessmenScrollRef = useRef(null);
+  const kolsScrollRef = useRef(null);
   
   const { data: businessmenData, isLoading: businessmenLoading, error: businessmenError } = useQuery({
     queryKey: ['top-businessmen', businessmenPage],
     queryFn: async () => {
-      console.log('TopMembersCard: Calling getTopBusinessmen page:', businessmenPage);
       const result = await topService.getTopBusinessmen({ 
         limit: 10, 
         page: businessmenPage 
       });
-      console.log('TopMembersCard: getTopBusinessmen result:', result);
       return result;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -35,15 +42,72 @@ const TopMembersCard = () => {
   const { data: kolData, isLoading: kolLoading, error: kolError } = useQuery({
     queryKey: ['top-kols', kolsPage],
     queryFn: async () => {
-      console.log('TopMembersCard: Calling getTopKOLs page:', kolsPage);
       const result = await topService.getTopKOLs({ 
         limit: 10, 
         page: kolsPage 
       });
-      console.log('TopMembersCard: getTopKOLs result:', result);
       return result;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Follow mutation
+  const followMutation = useMutation({
+    mutationFn: ({ target_id }) => {
+      return viewProfileService.toggleFollow(target_id);
+    },
+    onMutate: ({ target_id }) => {
+      setLoadingMembers(prev => new Set(prev).add(target_id));
+    },
+    onSuccess: (data, { target_id }) => {
+      const isNowFollowing = data?.data?.is_following ?? data?.is_following;
+      const followerCount = data?.data?.follower_count ?? data?.follower_count;
+      
+      setLoadingMembers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(target_id);
+        return newSet;
+      });
+      
+      // Update following state
+      setFollowingMembers(prev => {
+        const newSet = new Set(prev);
+        if (isNowFollowing) {
+          newSet.add(target_id);
+        } else {
+          newSet.delete(target_id);
+        }
+        return newSet;
+      });
+      
+      // Update follower count if provided
+      if (followerCount !== undefined) {
+        setMemberFollowers(prev => {
+          const newMap = new Map(prev);
+          newMap.set(target_id, followerCount);
+          return newMap;
+        });
+      }
+      
+      // Invalidate profile queries to update following count in user's profile
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AUTH.ME });
+      
+      // Invalidate current user's profile specifically
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROFILE.DETAIL(user.id) });
+        // Force refetch the profile data
+        queryClient.refetchQueries({ queryKey: QUERY_KEYS.PROFILE.DETAIL(user.id) });
+      }
+    },
+    onError: (error, { target_id }) => {
+      console.error('TopMembersCard: Follow error:', { target_id, error });
+      setLoadingMembers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(target_id);
+        return newSet;
+      });
+    },
   });
 
   // Update all data when new data comes in
@@ -67,47 +131,69 @@ const TopMembersCard = () => {
     }
   }, [kolData, kolsPage]);
 
+  // Initialize memberFollowers from data only once
+  React.useEffect(() => {
+    if (allBusinessmen.length > 0 || allKols.length > 0) {
+      const newFollowers = new Map();
+      [...allBusinessmen, ...allKols].forEach(member => {
+        // Only set if not already in map (preserve manual updates)
+        if (!memberFollowers.has(member.id)) {
+          newFollowers.set(member.id, member.followers_count || 0);
+        }
+      });
+      if (newFollowers.size > 0) {
+        setMemberFollowers(prev => new Map([...prev, ...newFollowers]));
+      }
+    }
+  }, [allBusinessmen.length, allKols.length]); // Only depend on length, not the arrays themselves
+
   const businessmen = allBusinessmen;
   const kols = allKols;
   const isLoading = businessmenLoading || kolLoading;
   const hasError = businessmenError || kolError;
 
-  const handleBusinessmenScroll = (event) => {
+  const handleBusinessmenScroll = useCallback((event) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
     const isCloseToEnd = contentOffset.x + layoutMeasurement.width >= contentSize.width - 100;
     
     if (isCloseToEnd && !businessmenLoading && businessmenData?.data?.length === 10) {
-      console.log('Loading more businessmen...');
       setBusinessmenPage(prev => prev + 1);
     }
-  };
+  }, [businessmenLoading, businessmenData?.data?.length]);
 
-  const handleKolsScroll = (event) => {
+  const handleKolsScroll = useCallback((event) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
     const isCloseToEnd = contentOffset.x + layoutMeasurement.width >= contentSize.width - 100;
     
     if (isCloseToEnd && !kolLoading && kolData?.data?.length === 10) {
-      console.log('Loading more KOLs...');
       setKolsPage(prev => prev + 1);
     }
-  };
+  }, [kolLoading, kolData?.data?.length]);
 
   // Handle follow button press
-  const handleFollow = (memberId, memberName) => {
-    requireAuth(() => {
-      // TODO: Implement follow functionality
-      console.log('Following member:', memberId, memberName);
-      // Here you would call the follow API
-    });
-  };
+  const handleFollow = useCallback((memberId, memberName) => {
+    if (loadingMembers.has(memberId)) return;
+    
+    const isCurrentlyFollowing = followingMembers.has(memberId);
+    
+    const followAction = () => {
+      followMutation.mutate({ target_id: memberId });
+    };
+    
+    // Call requireAuth and execute the returned function
+    const wrappedAction = requireAuth(followAction, isCurrentlyFollowing ? 'bỏ theo dõi thành viên' : 'theo dõi thành viên');
+    
+    if (typeof wrappedAction === 'function') {
+      wrappedAction();
+    } else {
+      followAction();
+    }
+  }, [followingMembers, requireAuth, followMutation, loadingMembers]);
 
   // Handle profile navigation
-  const handleProfilePress = (memberId, memberName) => {
-    console.log('TopMembersCard: Navigating to profile with:', { memberId, memberName });
-    
+  const handleProfilePress = useCallback((memberId, memberName) => {
     // Fallback nếu không có ID, sử dụng tên để tìm kiếm
     if (!memberId) {
-      console.log('TopMembersCard: No memberId, using userName for search');
       navigation.navigate(ROUTES.STACK.PROFILE_VIEW, { 
         userId: null,
         userName: memberName,
@@ -119,16 +205,8 @@ const TopMembersCard = () => {
         userName: memberName 
       });
     }
-  };
+  }, [navigation]);
 
-  console.log('TopMembersCard: Data', {
-    businessmen: businessmen.length,
-    kols: kols.length,
-    isLoading,
-    hasError,
-    businessmenData,
-    kolData
-  });
 
   if (isLoading) {
     return (
@@ -205,6 +283,7 @@ const TopMembersCard = () => {
           {businessmen.length > 0 ? (
 
           <ScrollView 
+            ref={businessmenScrollRef}
             horizontal 
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 4 }}
@@ -212,7 +291,6 @@ const TopMembersCard = () => {
             scrollEventThrottle={400}
           >
             {businessmen.map((member, index) => {
-              console.log('TopMembersCard: Businessman member data:', member);
               return (
               <View key={member.id || index} className="mr-4" style={{ width: 150 }}>
                 <View className="rounded-xl p-4 border-2 border-red-100" style={{
@@ -276,27 +354,40 @@ const TopMembersCard = () => {
                     <View className="flex-row items-center justify-center">
                       <MaterialCommunityIcons name="account-group" size={12} color="#DC2626" />
                       <Text className="text-red-600 text-xs font-semibold ml-1">
-                        {member.followers_count || 0} followers
+                        {(() => {
+                          const followerCount = memberFollowers.get(member.id) ?? member.followers_count ?? 0;
+                          console.log(`TopMembersCard: Displaying follower count for ${member.id}: ${followerCount}`);
+                          return followerCount;
+                        })()} followers
                       </Text>
                     </View>
                   </View>
 
                   {/* Follow Button */}
                   <TouchableOpacity 
-                    className="rounded-lg py-2 px-3" 
+                    className="rounded-lg py-2 px-3 min-h-[32px] items-center justify-center" 
                     style={{
                       backgroundColor: '#DC2626',
                       shadowColor: '#DC2626',
                       shadowOffset: { width: 0, height: 2 },
                       shadowOpacity: 0.2,
                       shadowRadius: 4,
-                      elevation: 3
+                      elevation: 3,
+                      opacity: loadingMembers.has(member.id) ? 0.7 : 1
                     }}
                     onPress={() => handleFollow(member.id, member.display_name || member.name)}
+                    disabled={loadingMembers.has(member.id)}
                   >
-                    <Text className="text-white text-xs font-bold text-center">
-                      + Theo dõi
-                    </Text>
+                    {loadingMembers.has(member.id) ? (
+                      <View className="flex-row items-center" style={{ gap: 4 }}>
+                        <ActivityIndicator size="small" color="white" />
+                        <Text className="text-white text-xs font-bold">Đang xử lý...</Text>
+                      </View>
+                    ) : (
+                      <Text className="text-white text-xs font-bold text-center">
+                        {followingMembers.has(member.id) ? 'Đang theo dõi' : 'Theo dõi'}
+                      </Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>
@@ -344,6 +435,7 @@ const TopMembersCard = () => {
           {kols.length > 0 ? (
 
           <ScrollView 
+            ref={kolsScrollRef}
             horizontal 
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 4 }}
@@ -351,7 +443,6 @@ const TopMembersCard = () => {
             scrollEventThrottle={400}
           >
             {kols.map((member, index) => {
-              console.log('TopMembersCard: KOL member data:', member);
               return (
               <View key={member.id || index} className="mr-4" style={{ width: 150 }}>
                 <View className="rounded-xl p-4 border-2 border-yellow-100" style={{
@@ -415,27 +506,36 @@ const TopMembersCard = () => {
                     <View className="flex-row items-center justify-center">
                       <MaterialCommunityIcons name="star" size={12} color="#F59E0B" />
                       <Text className="text-yellow-700 text-xs font-semibold ml-1">
-                        {member.followers_count || 0} followers
+                        {memberFollowers.get(member.id) ?? member.followers_count ?? 0} followers
                       </Text>
                     </View>
                   </View>
 
                   {/* Follow Button */}
                   <TouchableOpacity 
-                    className="rounded-lg py-2 px-3" 
+                    className="rounded-lg py-2 px-3 min-h-[32px] items-center justify-center" 
                     style={{
                       backgroundColor: '#F59E0B',
                       shadowColor: '#F59E0B',
                       shadowOffset: { width: 0, height: 2 },
                       shadowOpacity: 0.2,
                       shadowRadius: 4,
-                      elevation: 3
+                      elevation: 3,
+                      opacity: loadingMembers.has(member.id) ? 0.7 : 1
                     }}
                     onPress={() => handleFollow(member.id, member.display_name || member.name)}
+                    disabled={loadingMembers.has(member.id)}
                   >
-                    <Text className="text-white text-xs font-bold text-center">
-                      + Theo dõi
-                    </Text>
+                    {loadingMembers.has(member.id) ? (
+                      <View className="flex-row items-center" style={{ gap: 4 }}>
+                        <ActivityIndicator size="small" color="white" />
+                        <Text className="text-white text-xs font-bold">Đang xử lý...</Text>
+                      </View>
+                    ) : (
+                      <Text className="text-white text-xs font-bold text-center">
+                        {followingMembers.has(member.id) ? 'Đang theo dõi' : 'Theo dõi'}
+                      </Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>
@@ -465,6 +565,6 @@ const TopMembersCard = () => {
       </View>
     </View>
   );
-};
+});
 
 export default TopMembersCard;

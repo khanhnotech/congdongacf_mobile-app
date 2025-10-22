@@ -240,6 +240,13 @@ export default function PostDetail() {
       .slice(0, 2)
       .toUpperCase() ?? 'AC';
 
+  // Get author avatar from various possible sources
+  const authorAvatar = 
+    post.authorAvatar ?? 
+    post.author_avatar ?? 
+    post.raw?.author_avatar ?? 
+    null;
+
   return (
     <ScrollView
       className="flex-1 bg-white"
@@ -263,19 +270,31 @@ export default function PostDetail() {
           style={{ gap: gapSmall }}
         >
           <View
-            className="items-center justify-center bg-slate-200"
+            className="items-center justify-center bg-slate-200 overflow-hidden"
             style={{
               height: responsiveSpacing(48, { min: 42, max: 56 }),
               width: responsiveSpacing(48, { min: 42, max: 56 }),
               borderRadius: responsiveSpacing(48, { min: 42, max: 56 }) / 2,
             }}
           >
-            <Text
-              className="font-semibold text-slate-700"
-              style={{ fontSize: responsiveFontSize(13) }}
-            >
-              {initials}
-            </Text>
+            {authorAvatar ? (
+              <Image
+                source={{ uri: authorAvatar }}
+                style={{
+                  height: responsiveSpacing(48, { min: 42, max: 56 }),
+                  width: responsiveSpacing(48, { min: 42, max: 56 }),
+                  borderRadius: responsiveSpacing(48, { min: 42, max: 56 }) / 2,
+                }}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text
+                className="font-semibold text-slate-700"
+                style={{ fontSize: responsiveFontSize(13) }}
+              >
+                {initials}
+              </Text>
+            )}
           </View>
           <View className="flex-1">
             <Text

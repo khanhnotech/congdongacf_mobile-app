@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import PostCard from '../../../components/PostCard';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyState from '../../../components/EmptyState';
@@ -42,6 +43,16 @@ export default function LatestPosts() {
   const handleRefresh = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  // Refresh data when screen comes into focus (e.g., returning from PostDetail)
+  useFocusEffect(
+    useCallback(() => {
+      // Only refresh if we have data and it's not already loading
+      if (posts.length > 0 && !isLoading) {
+        refetch();
+      }
+    }, [posts.length, isLoading, refetch])
+  );
 
   const handleToggleLike = useCallback(
     async (targetPost) => {

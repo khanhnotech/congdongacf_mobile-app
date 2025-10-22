@@ -8,7 +8,7 @@ import {
   View,
   RefreshControl,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../../hooks/useAuth';
@@ -100,6 +100,19 @@ export default function MyProfile() {
       setRefreshing(false);
     }
   }, [user?.id, profileQuery, profileArticlesQuery]);
+
+  // Refresh data when screen comes into focus (e.g., returning from PostDetail)
+  useFocusEffect(
+    useCallback(() => {
+      // Only refresh if we have user and articles data, and not already refreshing
+      if (user?.id && profileArticlesQuery.data?.items?.length > 0 && !refreshing) {
+        // Refresh profile articles to update like counts and comments
+        profileArticlesQuery.refetch();
+        // Also refresh profile data to update stats (like count, etc.)
+        profileQuery.refetch();
+      }
+    }, [user?.id, profileArticlesQuery.data?.items?.length, refreshing, profileArticlesQuery.refetch, profileQuery.refetch])
+  );
 
   if (!user) {
     return (
@@ -589,7 +602,7 @@ export default function MyProfile() {
                         gap: gapSmall * 0.4,
                         borderRadius: cardRadius,
                         borderWidth: 1,
-                        borderColor: '#FEE2E2',
+                        borderColor: liked ? '#FEE2E2' : '#F3F4F6',
                         paddingVertical: gapSmall * 0.6,
                         opacity: toggleLikeStatus === 'pending' ? 0.6 : 1,
                       }}
@@ -597,10 +610,10 @@ export default function MyProfile() {
                       <MaterialCommunityIcons
                         name={liked ? 'heart' : 'heart-outline'}
                         size={responsiveFontSize(16)}
-                        color="#DC2626"
+                        color={liked ? "#DC2626" : "#9CA3AF"}
                       />
                       <Text
-                        className="font-medium text-red-600"
+                        className={`font-medium ${liked ? 'text-red-600' : 'text-gray-500'}`}
                         style={{ fontSize: responsiveFontSize(13) }}
                       >
                         {`Thích (${likeCount})`}

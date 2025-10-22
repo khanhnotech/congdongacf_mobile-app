@@ -20,13 +20,15 @@ const ChatBubble = ({ onPress, isVisible = true, unreadCount = 0 }) => {
   const lastPosition = useRef({ x: 0, y: 0 });
   const dragOrigin = useRef({ x: 0, y: 0 });
 
+  if (!isVisible) return null;
+
   const minX = BUBBLE_MARGIN;
   const maxX = Math.max(minX, width - BUBBLE_SIZE - BUBBLE_MARGIN);
   const minY = Math.max(BUBBLE_MARGIN + insets.top, BUBBLE_MARGIN);
   const maxY = Math.max(minY, height - BUBBLE_SIZE - insets.bottom - BUBBLE_MARGIN);
 
   const initialX = maxX;
-  const initialY = Math.max(minY, maxY - 120);
+  const initialY = Math.max(minY, maxY - 80);
 
   useEffect(() => {
     const boundedX = clamp(lastPosition.current.x || initialX, minX, maxX);

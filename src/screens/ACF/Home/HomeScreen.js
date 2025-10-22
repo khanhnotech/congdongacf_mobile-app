@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, ScrollView, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import TopicChip from '../../../components/TopicChip';
 import PostCard from '../../../components/PostCard';
 import LoadingSpinner from '../../../components/LoadingSpinner';
@@ -53,6 +54,16 @@ export default function HomeScreen() {
   const handleRefresh = useCallback(() => {
     refetchPosts();
   }, [refetchPosts]);
+
+  // Refresh data when screen comes into focus (e.g., returning from PostDetail)
+  useFocusEffect(
+    useCallback(() => {
+      // Only refresh if we have data and it's not already loading
+      if (allPosts.length > 0 && !postsLoading) {
+        refetchPosts();
+      }
+    }, [allPosts.length, postsLoading, refetchPosts])
+  );
 
   const isRefreshing = postsRefetching && !postsLoading;
   const { toggleLike, toggleLikeStatus } = useTogglePostLike();

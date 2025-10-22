@@ -33,6 +33,7 @@ import { useResponsiveSpacing } from '../hooks/useResponsiveSpacing';
 import { useChat } from '../hooks/useChat';
 import ChatBubble from '../components/ChatBubble';
 import ChatDialog from '../components/ChatDialog';
+import EventsTicker from '../components/EventsTicker';
 
 const Tab = createBottomTabNavigator();
 
@@ -86,7 +87,9 @@ function AppHeader({ title, onOpenMenu, onSearch, onAvatarPress, avatarInitials,
   const { screenPadding, verticalPadding, gapSmall, gapMedium, responsiveFontSize, cardRadius, chipPaddingHorizontal, chipPaddingVertical, responsiveSpacing } = spacing;
   const actionSize = responsiveSpacing(46, { min: 40, max: 52 });
   const tickerHeight = responsiveSpacing(38, { min: 32, max: 46 });
-  const tickerMessage = 'Sự kiện: Hệ thống sẽ cập nhật sớm.';
+  
+  // Use EventsTicker instead of static message
+  const eventsTicker = EventsTicker();
   const timestamp = useMemo(() => new Date().toLocaleString('vi-VN', {
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false,
   }), []);
@@ -108,24 +111,40 @@ function AppHeader({ title, onOpenMenu, onSearch, onAvatarPress, avatarInitials,
     return () => animation.stop();
   }, [tickerWidth, contentWidth]);
 
-  const renderTickerContent = (shouldMeasure = false) => (
-    <View
-      className="flex-row items-center"
-      style={{ paddingRight: gapMedium * 2 }}
-      onLayout={shouldMeasure ? (event) => setContentWidth(event.nativeEvent.layout.width) : undefined}
-    >
-      <MaterialCommunityIcons name="bullhorn" size={responsiveFontSize(16)} color="#991B1B" />
-      <Text className="font-semibold text-red-700" style={{ fontSize: responsiveFontSize(13) }}>
-        {tickerMessage}
-      </Text>
-      <View className="flex-row items-center rounded-full bg-red-500" style={{ paddingHorizontal: chipPaddingHorizontal, paddingVertical: chipPaddingVertical / 1.6 }}>
-        <MaterialCommunityIcons name="clock-outline" size={responsiveFontSize(14)} color="#FFFFFF" />
-        <Text className="font-semibold text-white" style={{ fontSize: responsiveFontSize(12) }}>
-          {timestamp}
+  const renderTickerContent = (shouldMeasure = false) => {
+    const tickerContent = eventsTicker.renderTickerContent(shouldMeasure);
+    
+    // If EventsTicker returns content, wrap it with proper onLayout handling
+    if (eventsTicker.hasEvents || eventsTicker.isLoading) {
+      return (
+        <View
+          onLayout={shouldMeasure ? (event) => setContentWidth(event.nativeEvent.layout.width) : undefined}
+        >
+          {tickerContent}
+        </View>
+      );
+    }
+    
+    // Fallback to original ticker with timestamp
+    return (
+      <View
+        className="flex-row items-center"
+        style={{ paddingRight: gapMedium * 2 }}
+        onLayout={shouldMeasure ? (event) => setContentWidth(event.nativeEvent.layout.width) : undefined}
+      >
+        <MaterialCommunityIcons name="bullhorn" size={responsiveFontSize(16)} color="#991B1B" />
+        <Text className="font-semibold text-red-700" style={{ fontSize: responsiveFontSize(13) }}>
+          Sự kiện: Hệ thống sẽ cập nhật sớm.
         </Text>
+        <View className="flex-row items-center rounded-full bg-red-500" style={{ paddingHorizontal: chipPaddingHorizontal, paddingVertical: chipPaddingVertical / 1.6 }}>
+          <MaterialCommunityIcons name="clock-outline" size={responsiveFontSize(14)} color="#FFFFFF" />
+          <Text className="font-semibold text-white" style={{ fontSize: responsiveFontSize(12) }}>
+            {timestamp}
+          </Text>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View className="bg-white shadow-sm" style={{ paddingTop: padTop + gapSmall, paddingBottom: verticalPadding * 0.6, paddingHorizontal: screenPadding }}>
@@ -370,7 +389,7 @@ function DraggablePortalButton({ onPress }) {
   const maxY = Math.max(minY, height - FLOATING_BUTTON_SIZE - insets.bottom - FLOATING_MARGIN);
 
   const initialX = maxX;
-  const initialY = Math.max(minY, maxY - 120);
+  const initialY = Math.max(minY, maxY - 150); // Logo ACF nằm trên chat button (180px từ bottom)
 
   useEffect(() => {
     const boundedX = clamp(lastPosition.current.x || initialX, minX, maxX);

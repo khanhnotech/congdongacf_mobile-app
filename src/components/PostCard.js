@@ -6,7 +6,7 @@ import { useAuthRedirect } from '../hooks/useAuthRedirect';
 import { formatDateTime } from '../utils/format';
 import { ROUTES } from '../utils/constants';
 
-export default function PostCard({ post, onPress, onToggleLike, likePending = false }) {
+export default function PostCard({ post, onPress, onToggleLike, likePending = false, disableProfileNavigation = false }) {
   if (!post) return null;
 
   const navigation = useNavigation();
@@ -30,6 +30,13 @@ export default function PostCard({ post, onPress, onToggleLike, likePending = fa
       .join('')
       .slice(0, 2)
       .toUpperCase() ?? 'AC';
+
+  // Get author avatar from various possible sources
+  const authorAvatar = 
+    post.authorAvatar ?? 
+    post.author_avatar ?? 
+    post.raw?.author_avatar ?? 
+    null;
 
   const previewLimit = 150;
   const excerpt = post.excerpt ?? '';
@@ -76,9 +83,22 @@ export default function PostCard({ post, onPress, onToggleLike, likePending = fa
   };
 
   const handleProfilePress = () => {
-    const userId = post.authorId || post.author_id;
-    const userName = post.author;
-    console.log('PostCard: Navigating to profile with:', { userId, userName, post: post });
+    // Don't navigate to profile if disabled (e.g., in ProfileView to prevent infinite loop)
+    if (disableProfileNavigation) {
+      return;
+    }
+    
+    // Ưu tiên post.raw?.author_id và post.raw?.author_name
+    const userId = post.raw?.author_id || post.authorId || post.author_id;
+    const userName = post.raw?.author_name || post.author;
+    
+    console.log('PostCard: Navigating to profile with:', { 
+      userId, 
+      userName, 
+      rawAuthorId: post.raw?.author_id,
+      rawAuthorName: post.raw?.author_name,
+      post: post 
+    });
     
     // Fallback nếu không có ID, sử dụng tên để tìm kiếm
     if (!userId) {
@@ -91,7 +111,7 @@ export default function PostCard({ post, onPress, onToggleLike, likePending = fa
     } else {
       navigation.navigate(ROUTES.STACK.PROFILE_VIEW, { 
         userId: userId,
-        userName: userName 
+        userName: userName
       });
     }
   };
@@ -121,16 +141,28 @@ export default function PostCard({ post, onPress, onToggleLike, likePending = fa
       <View className="flex-row items-center" style={{ gap: gapSmall }}>
         <TouchableOpacity
           onPress={handleProfilePress}
-          className="items-center justify-center bg-slate-200"
+          className="items-center justify-center bg-slate-200 overflow-hidden"
           style={{
             height: avatarSize,
             width: avatarSize,
             borderRadius: avatarSize / 2,
           }}
         >
-          <Text className="font-semibold text-slate-700" style={{ fontSize: responsiveFontSize(13) }}>
-            {initials}
-          </Text>
+          {authorAvatar ? (
+            <Image
+              source={{ uri: authorAvatar }}
+              style={{
+                height: avatarSize,
+                width: avatarSize,
+                borderRadius: avatarSize / 2,
+              }}
+              resizeMode="cover"
+            />
+          ) : (
+            <Text className="font-semibold text-slate-700" style={{ fontSize: responsiveFontSize(13) }}>
+              {initials}
+            </Text>
+          )}
         </TouchableOpacity>
         <View className="flex-1">
           <TouchableOpacity onPress={handleProfilePress}>
@@ -206,7 +238,7 @@ export default function PostCard({ post, onPress, onToggleLike, likePending = fa
             marginHorizontal: gapSmall / 2,
             marginBottom: gapSmall,
           }}
-          iconColor={isLiked ? '#DC2626' : '#DC2626'}
+          iconColor={isLiked ? '#DC2626' : '#9CA3AF'}
           onPress={() => {
             requireAuth(() => {
               if (onToggleLike) {
