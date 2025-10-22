@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../../hooks/useAuth';
@@ -75,13 +75,21 @@ export default function Register() {
   };
 
   return (
-    <View
-      className="flex-1 justify-center bg-red-600"
-      style={{
-        paddingHorizontal: screenPadding,
-        paddingVertical: verticalPadding,
-      }}
+    <KeyboardAvoidingView
+      className="flex-1 bg-red-600"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
     >
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: screenPadding,
+          paddingVertical: verticalPadding,
+          flexGrow: 1,
+          justifyContent: 'center',
+        }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
       <View
         className="bg-white shadow-sm"
         style={{
@@ -235,7 +243,8 @@ export default function Register() {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

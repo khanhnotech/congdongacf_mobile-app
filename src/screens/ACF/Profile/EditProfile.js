@@ -7,6 +7,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
@@ -302,16 +304,24 @@ export default function EditProfile() {
   };
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView
       className="flex-1 bg-slate-100"
-      style={{ paddingHorizontal: screenPadding }}
-      contentContainerStyle={{
-        paddingTop: verticalPadding + statusBarOffset,
-        paddingBottom: screenPadding,
-        gap: gapMedium,
-      }}
-      keyboardShouldPersistTaps="handled"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
+      <ScrollView
+        style={{ paddingHorizontal: screenPadding }}
+        contentContainerStyle={{
+          paddingTop: verticalPadding + statusBarOffset,
+          paddingBottom: screenPadding + 490, // Extra space for keyboard
+          gap: gapMedium,
+        }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        extraScrollHeight={200}
+        automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+      >
       <View style={{ gap: gapSmall }}>
         <Text
           className="uppercase text-red-600"
@@ -493,6 +503,7 @@ export default function EditProfile() {
           {isBusy ? 'Đang lưu...' : 'Lưu thay đổi'}
         </Text>
       </TouchableOpacity>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

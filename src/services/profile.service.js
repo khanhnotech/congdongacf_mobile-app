@@ -165,6 +165,15 @@ export const profileService = {
     if (!userId) {
       throw new Error('Missing userId to fetch profile articles');
     }
+    const response = await apiClient.get(`view-profile/${userId}/article`, {
+      params,
+    });
+    return adaptProfileArticles(response);
+  },
+  async getMyProfileArticles(userId, params) {
+    if (!userId) {
+      throw new Error('Missing userId to fetch my profile articles');
+    }
     const response = await apiClient.get(`profile/${userId}/article`, {
       params,
     });

@@ -188,6 +188,13 @@ const mapComment = (comment = {}) => {
       comment.user_name ??
       comment.user?.name ??
       'Nguoi dung',
+    authorAvatar:
+      comment.avatar_url ??
+      comment.author_avatar ??
+      comment.user?.avatar_url ??
+      comment.raw?.avatar_url ??
+      comment.raw?.author_avatar ??
+      null,
     createdAt:
       comment.created_at ??
       comment.updated_at ??
@@ -537,6 +544,20 @@ export const postsService = {
       articleId: toNumber(data?.article_id) ?? targetId,
       liked: Boolean(data?.liked),
       likeCount: toNumber(data?.like_count),
+    };
+  },
+
+  async shareArticle(slug) {
+    if (!slug || typeof slug !== 'string' || slug.trim() === '') {
+      throw new Error('Invalid article slug');
+    }
+    const response = await apiClient.post(`article/share/${slug}`);
+    const data = response?.data ?? response;
+    return {
+      articleId: toNumber(data?.article_id),
+      slug: data?.slug,
+      shared: Boolean(data?.shared),
+      shareCount: toNumber(data?.share_count),
     };
   },
 };

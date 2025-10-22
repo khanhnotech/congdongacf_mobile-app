@@ -65,7 +65,7 @@ export default function ProfileView() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const profile = profileData?.data;
+  const profile = profileData?.data ?? null;
 
   // Fetch user articles
   const articleParams = useMemo(() => ({ limit: 10 }), []);
@@ -109,9 +109,9 @@ export default function ProfileView() {
   // Update isFollowing when profile changes
   React.useEffect(() => {
     if (profile?.follow?.is_following !== undefined) {
-      setIsFollowing(profile.follow.is_following);
+      setIsFollowing(profile?.follow?.is_following);
     } else if (profile?.is_following !== undefined) {
-      setIsFollowing(profile.is_following);
+      setIsFollowing(profile?.is_following);
     } else {
       // Default to false if no follow data available
       setIsFollowing(false);
@@ -179,11 +179,16 @@ export default function ProfileView() {
 
   // Transform articles data to ensure PostCard compatibility
   const transformArticlesForPostCard = useCallback((articles) => {
-    if (!articles) return [];
+    if (!articles || !Array.isArray(articles)) return [];
     const userKey = user?.id ?? user?.email ?? null;
     const likedByUser = userKey ? likesStore.likedByUser[userKey] : {};
     
     return articles.map(article => {
+      // Safety check for article object
+      if (!article || typeof article !== 'object') {
+        console.warn('ProfileView: Invalid article object', article);
+        return null;
+      }
       const articleId = Number(article.id ?? article.articleId ?? article.raw?.id ?? article.raw?.article_id);
       
       // Check liked status from multiple sources
@@ -316,7 +321,7 @@ export default function ProfileView() {
         // Ensure createdAt field is available
         createdAt: article.publishedAt ?? article.published_at ?? article.createdAt ?? article.created_at ?? null,
       };
-    });
+    }).filter(article => article !== null);
   }, [user?.id, user?.email, likesStore.likedByUser]);
 
   // Handle follow button press
@@ -324,7 +329,9 @@ export default function ProfileView() {
     if (!profile?.user?.id || followMutation.isPending) return;
     
     const followAction = () => {
-      followMutation.mutate(profile.user.id);
+      if (profile?.user?.id) {
+        followMutation.mutate(profile.user.id);
+      }
     };
     
     // Call requireAuth and execute the returned function
@@ -422,9 +429,9 @@ export default function ProfileView() {
       {/* Cover Photo with Overlapping Avatar */}
       <View className="relative" style={{ marginBottom: gapMedium }}>
         {/* Cover Photo */}
-        {profile.user?.cover_photo ? (
+        {profile?.user?.cover_photo ? (
           <Image
-            source={{ uri: profile.user.cover_photo }}
+            source={{ uri: profile?.user?.cover_photo }}
             style={{
               width: '100%',
               height: 200,
@@ -470,9 +477,9 @@ export default function ProfileView() {
               elevation: 8,
             }}
           >
-            {profile.user?.avatar_url ? (
+            {profile?.user?.avatar_url ? (
               <Image
-                source={{ uri: profile.user.avatar_url }}
+                source={{ uri: profile?.user?.avatar_url }}
                 style={{
                   height: 112,
                   width: 112,
@@ -498,7 +505,7 @@ export default function ProfileView() {
                     fontWeight: 'bold',
                   }}
                 >
-                  {profile.user?.name?.[0]?.toUpperCase() ?? 'A'}
+                  {profile?.user?.name?.[0]?.toUpperCase() ?? 'A'}
                 </Text>
               </View>
             )}
@@ -512,21 +519,21 @@ export default function ProfileView() {
           className="font-bold text-slate-900"
           style={{ fontSize: responsiveFontSize(24) }}
         >
-          {profile.user?.name || profile.user?.username || 'Người dùng'}
+          {profile?.user?.name || profile?.user?.username || 'Người dùng'}
         </Text>
         <Text
           className="text-slate-500"
           style={{ fontSize: responsiveFontSize(14) }}
         >
-          {profile.user?.role === 'businessmen' ? 'Doanh nhân' : 
-           profile.user?.role === 'kol' ? 'KOL' : 'Thành viên'} • ID: {profile.user?.id}
+          {profile?.user?.role === 'businessmen' ? 'Doanh nhân' : 
+           profile?.user?.role === 'kol' ? 'KOL' : 'Thành viên'} • ID: {profile?.user?.id}
         </Text>
-        {profile.user?.username && (
+        {profile?.user?.username && (
           <Text
             className="text-slate-400"
             style={{ fontSize: responsiveFontSize(12) }}
           >
-            @{profile.user.username}
+            @{profile?.user?.username}
           </Text>
         )}
 
@@ -559,7 +566,7 @@ export default function ProfileView() {
         )}
       </View>
 
-      {profile.user?.description && (
+      {profile?.user?.description && (
         <View style={{ gap: gapSmall }}>
           <Text
             className="font-semibold text-slate-900"
@@ -574,7 +581,7 @@ export default function ProfileView() {
               lineHeight: responsiveFontSize(20, { min: 18 }),
             }}
           >
-            {profile.user.description}
+            {profile?.user?.description}
           </Text>
         </View>
       )}

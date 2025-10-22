@@ -1,15 +1,47 @@
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TouchableOpacity, View, Share, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useResponsiveSpacing } from '../hooks/useResponsiveSpacing';
 import { useAuthRedirect } from '../hooks/useAuthRedirect';
 import { formatDateTime } from '../utils/format';
 import { ROUTES } from '../utils/constants';
+import { postsService } from '../services/posts.service';
 
 export default function PostCard({ post, onPress, onToggleLike, likePending = false, disableProfileNavigation = false }) {
   if (!post) return null;
 
   const navigation = useNavigation();
+
+  const handleShare = async () => {
+    try {
+      // Get slug from post data
+      const slug = post.slug ?? post.raw?.slug ?? null;
+
+      if (!slug) {
+        Alert.alert('Lỗi', 'Không thể chia sẻ bài viết này vì thiếu thông tin');
+        return;
+      }
+
+      // Call API to record share
+      try {
+        await postsService.shareArticle(slug);
+      } catch (apiError) {
+        console.warn('Share API error:', apiError);
+        // Continue with share even if API fails
+      }
+
+      // Create share URL with slug
+      const shareUrl = `https://acf-community.com/article/${slug}`;
+
+      await Share.share({
+        message: shareUrl,
+        url: shareUrl,
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+      Alert.alert('Lỗi', 'Không thể chia sẻ bài viết');
+    }
+  };
   const { requireAuth } = useAuthRedirect();
   const {
     cardPadding,
@@ -315,6 +347,7 @@ export default function PostCard({ post, onPress, onToggleLike, likePending = fa
             marginHorizontal: gapSmall / 2,
             marginBottom: gapSmall,
           }}
+          onPress={handleShare}
           chipPadding={{
             horizontal: pillHorizontal,
             vertical: pillVertical,

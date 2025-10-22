@@ -7,14 +7,17 @@ import {
   TouchableOpacity,
   View,
   RefreshControl,
+  Share,
+  Alert,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../../hooks/useAuth';
-import { useProfileDetail, useProfileArticles } from '../../../hooks/useProfile';
+import { useProfileDetail, useMyProfileArticles } from '../../../hooks/useProfile';
 import { useTogglePostLike } from '../../../hooks/useTogglePostLike';
 import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
+import { postsService } from '../../../services/posts.service';
 import { ROUTES, QUERY_KEYS } from '../../../utils/constants';
 import { formatDateTime, formatName } from '../../../utils/format';
 
@@ -67,7 +70,7 @@ export default function MyProfile() {
   const queryClient = useQueryClient();
   const profileQuery = useProfileDetail(user?.id);
   const articleParams = useMemo(() => ({ limit: 10 }), []);
-  const profileArticlesQuery = useProfileArticles(user?.id, articleParams);
+  const profileArticlesQuery = useMyProfileArticles(user?.id, articleParams);
   const [refreshing, setRefreshing] = useState(false);
   const {
     screenPadding,
@@ -82,7 +85,7 @@ export default function MyProfile() {
     listContentPaddingBottom,
   } = useResponsiveSpacing();
   const profileArticlesKey = useMemo(
-    () => (user?.id ? QUERY_KEYS.PROFILE.ARTICLES(user.id, articleParams) : null),
+    () => (user?.id ? QUERY_KEYS.PROFILE.MY_ARTICLES(user.id, articleParams) : null),
     [user?.id, articleParams],
   );
 
@@ -177,6 +180,39 @@ export default function MyProfile() {
       postSlug: articleSlug,
     });
   };
+
+  const handleShareArticle = useCallback(async (article) => {
+    try {
+      // Get slug from article data
+      const slug = article.slug ?? article.raw?.slug ?? null;
+      const title = article.title ?? 'Bài viết từ ACF Community';
+      const summary = article.summary ?? article.excerpt ?? '';
+
+      if (!slug) {
+        Alert.alert('Lỗi', 'Không thể chia sẻ bài viết này vì thiếu thông tin');
+        return;
+      }
+
+      // Call API to record share
+      try {
+        await postsService.shareArticle(slug);
+      } catch (apiError) {
+        console.warn('Share API error:', apiError);
+        // Continue with share even if API fails
+      }
+
+      // Create share URL with slug
+      const shareUrl = `https://acf-community.com/article/${slug}`;
+
+      await Share.share({
+        message: shareUrl,
+        url: shareUrl,
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+      Alert.alert('Lỗi', 'Không thể chia sẻ bài viết');
+    }
+  }, []);
 
   const handleToggleLike = (article) => {
     const articleId =
@@ -647,7 +683,7 @@ export default function MyProfile() {
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      onPress={() => handleOpenArticleDetail(article)}
+                      onPress={() => handleShareArticle(article)}
                       activeOpacity={0.8}
                       style={{
                         flex: 1,

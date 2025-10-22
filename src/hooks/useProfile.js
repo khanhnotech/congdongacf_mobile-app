@@ -28,7 +28,22 @@ export const useProfileArticles = (userId, params = {}, options = {}) => {
   });
 };
 
+export const useMyProfileArticles = (userId, params = {}, options = {}) => {
+  const queryKey = userId
+    ? QUERY_KEYS.PROFILE.MY_ARTICLES(userId, params)
+    : ['profile', 'nil', 'my-articles'];
+  return useQuery({
+    queryKey,
+    queryFn: () => profileService.getMyProfileArticles(userId, params),
+    enabled: Boolean(userId) && (options.enabled ?? true),
+    staleTime: options.staleTime ?? 60 * 1000,
+    gcTime: options.gcTime ?? 5 * 60 * 1000,
+    ...options,
+  });
+};
+
 export default {
   useProfileDetail,
   useProfileArticles,
+  useMyProfileArticles,
 };

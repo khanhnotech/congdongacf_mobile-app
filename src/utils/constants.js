@@ -50,6 +50,7 @@ export const QUERY_KEYS = {
   PROFILE: {
     DETAIL: (id) => ['profile', id],
     ARTICLES: (id, params = {}) => ['profile', id, 'articles', params],
+    MY_ARTICLES: (id, params = {}) => ['profile', id, 'my-articles', params],
   },
   AUTH: {
     ME: ['auth', 'me'],

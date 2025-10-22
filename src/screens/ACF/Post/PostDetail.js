@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ScrollView, Text, View, Image, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { ScrollView, Text, View, Image, TouchableOpacity, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Share, Alert } from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyState from '../../../components/EmptyState';
@@ -8,6 +8,8 @@ import { usePosts } from '../../../hooks/usePosts';
 import { useTogglePostLike } from '../../../hooks/useTogglePostLike';
 import { usePostComments } from '../../../hooks/usePostComments';
 import { useAuthRedirect } from '../../../hooks/useAuthRedirect';
+import { useAuth } from '../../../hooks/useAuth';
+import { postsService } from '../../../services/posts.service';
 import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 import { formatDateTime } from '../../../utils/format';
 
@@ -40,7 +42,9 @@ const splitIntoParagraphs = (value) => {
 
 export default function PostDetail() {
   const route = useRoute();
+  const navigation = useNavigation();
   const { requireAuth } = useAuthRedirect();
+  const { user } = useAuth();
   const {
     postId,
     postSlug,
@@ -185,6 +189,78 @@ export default function PostDetail() {
 
   const handleSubmitCommentWithAuth = requireAuth(handleSubmitComment, 'bình luận bài viết này');
 
+  const handleCommentAuthorPress = useCallback((comment) => {
+    // Safety check for undefined comment
+    if (!comment || typeof comment !== 'object') {
+      console.warn('handleCommentAuthorPress: Invalid comment object', comment);
+      return;
+    }
+
+    // Try to get user ID from various sources
+    const userId = 
+      comment.user_id ?? 
+      comment.userId ?? 
+      comment.raw?.user_id ?? 
+      comment.raw?.userId ?? 
+      null;
+    
+    const username = 
+      comment.user_username ?? 
+      comment.username ?? 
+      comment.raw?.user_username ?? 
+      comment.raw?.username ?? 
+      null;
+
+    const authorName = comment.author ?? comment.user_name ?? 'Người dùng';
+
+    if (userId) {
+      navigation.navigate('ProfileView', { userId });
+    } else if (username) {
+      navigation.navigate('ProfileView', { userName: username, searchBy: 'username' });
+    } else {
+      // Fallback to name search
+      navigation.navigate('ProfileView', { userName: authorName, searchBy: 'name' });
+    }
+  }, [navigation]);
+
+  const handleShare = useCallback(async () => {
+    if (!post) {
+      Alert.alert('Lỗi', 'Không thể chia sẻ bài viết này');
+      return;
+    }
+
+    try {
+      // Get slug from post data
+      const slug = post.slug ?? post.raw?.slug ?? null;
+      const title = post.title ?? 'Bài viết từ ACF Community';
+      const summary = post.summary ?? post.excerpt ?? '';
+
+      if (!slug) {
+        Alert.alert('Lỗi', 'Không thể chia sẻ bài viết này vì thiếu thông tin');
+        return;
+      }
+
+      // Call API to record share
+      try {
+        await postsService.shareArticle(slug);
+      } catch (apiError) {
+        console.warn('Share API error:', apiError);
+        // Continue with share even if API fails
+      }
+
+      // Create share URL with slug
+      const shareUrl = `https://acf-community.com/article/${slug}`;
+
+      await Share.share({
+        message: shareUrl,
+        url: shareUrl,
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+      Alert.alert('Lỗi', 'Không thể chia sẻ bài viết');
+    }
+  }, [post]);
+
   if (!detailTarget) {
     return (
       <View
@@ -248,15 +324,20 @@ export default function PostDetail() {
     null;
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView
       className="flex-1 bg-white"
-      contentContainerStyle={{
-        paddingHorizontal: screenPadding,
-        paddingTop: verticalPadding + statusBarOffset,
-        paddingBottom: listContentPaddingBottom,
-      }}
-      showsVerticalScrollIndicator={false}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
     >
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: screenPadding,
+          paddingTop: verticalPadding + statusBarOffset,
+          paddingBottom: listContentPaddingBottom,
+        }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
       <View
         className="border border-red-100 bg-white shadow-sm"
         style={{
@@ -452,6 +533,7 @@ export default function PostDetail() {
           <ActionPill
             icon="share-variant"
             label="Chia sẻ"
+            onPress={handleShare}
             style={{
               marginHorizontal: gapSmall / 2,
               marginBottom: gapSmall,
@@ -476,26 +558,60 @@ export default function PostDetail() {
               gap: gapSmall,
             }}
           >
-            <TextInput
-              multiline
-              value={commentText}
-              onChangeText={(value) => {
-                setCommentText(value);
-                if (commentError) {
-                  setCommentError(null);
-                }
-              }}
-              placeholder="Nhập bình luận của bạn..."
-              placeholderTextColor="#94A3B8"
-              className="text-slate-700"
-              style={{
-                minHeight: responsiveSpacing(96, { min: 80, max: 140 }),
-                fontSize: responsiveFontSize(14),
-                lineHeight: responsiveFontSize(20, { min: 18 }),
-              }}
-              editable={canSubmitComment}
-              scrollEnabled
-            />
+            <View className="flex-row items-center" style={{ gap: gapSmall }}>
+              {/* User Avatar */}
+              <View
+                className="items-center justify-center bg-slate-200 overflow-hidden"
+                style={{
+                  height: 32,
+                  width: 32,
+                  borderRadius: 16,
+                }}
+              >
+                {user?.avatar ? (
+                  <Image
+                    source={{ uri: user?.avatar }}
+                    style={{
+                      height: 32,
+                      width: 32,
+                      borderRadius: 16,
+                    }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Text
+                    className="font-semibold text-slate-700"
+                    style={{ fontSize: responsiveFontSize(12) }}
+                  >
+                    {user?.name?.[0]?.toUpperCase() ?? 'U'}
+                  </Text>
+                )}
+              </View>
+              
+              {/* Comment Input */}
+              <View className="flex-1">
+                <TextInput
+                  multiline
+                  value={commentText}
+                  onChangeText={(value) => {
+                    setCommentText(value);
+                    if (commentError) {
+                      setCommentError(null);
+                    }
+                  }}
+                  placeholder="Nhập bình luận của bạn..."
+                  placeholderTextColor="#94A3B8"
+                  className="text-slate-700"
+                  style={{
+                    minHeight: responsiveSpacing(60, { min: 50, max: 80 }),
+                    fontSize: responsiveFontSize(14),
+                    lineHeight: responsiveFontSize(20, { min: 18 }),
+                  }}
+                  editable={canSubmitComment}
+                  scrollEnabled
+                />
+              </View>
+            </View>
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={handleSubmitCommentWithAuth}
@@ -551,39 +667,99 @@ export default function PostDetail() {
             </Text>
           ) : comments.length ? (
             <View style={{ gap: gapSmall }}>
-              {comments.map((comment) => (
-                <View
-                  key={comment.id}
-                  className="border border-slate-200 bg-white"
-                  style={{
-                    borderRadius: cardRadius,
-                    padding: cardPadding,
-                    gap: gapSmall / 2,
-                  }}
-                >
-                  <Text
-                    className="font-semibold text-slate-900"
-                    style={{ fontSize: responsiveFontSize(14) }}
-                  >
-                    {comment.author}
-                  </Text>
-                  <Text
-                    className="text-slate-400"
-                    style={{ fontSize: responsiveFontSize(12) }}
-                  >
-                    {formatDateTime(comment.createdAt)}
-                  </Text>
-                  <Text
-                    className="text-slate-600"
+              {comments.map((comment) => {
+                // Get comment author avatar from various possible sources
+                const commentAvatar = 
+                  comment.authorAvatar ?? 
+                  comment.author_avatar ?? 
+                  comment.user?.avatar_url ?? 
+                  comment.raw?.author_avatar ?? 
+                  null;
+
+                const commentInitials = 
+                  comment.author
+                    ?.split(' ')
+                    .map((part) => part[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase() ?? 'U';
+
+                return (
+                  <View
+                    key={comment.id}
+                    className="border border-slate-200 bg-white"
                     style={{
-                      fontSize: responsiveFontSize(14),
-                      lineHeight: responsiveFontSize(20, { min: 18 }),
+                      borderRadius: cardRadius,
+                      padding: cardPadding,
+                      gap: gapSmall,
                     }}
                   >
-                    {comment.content}
-                  </Text>
-                </View>
-              ))}
+                    {/* Comment Author Info */}
+                    <TouchableOpacity 
+                      className="flex-row items-center" 
+                      style={{ gap: gapSmall }}
+                      onPress={() => handleCommentAuthorPress(comment)}
+                      activeOpacity={0.7}
+                    >
+                      {/* Avatar */}
+                      <View
+                        className="items-center justify-center bg-slate-200 overflow-hidden"
+                        style={{
+                          height: 32,
+                          width: 32,
+                          borderRadius: 16,
+                        }}
+                      >
+                        {commentAvatar ? (
+                          <Image
+                            source={{ uri: commentAvatar }}
+                            style={{
+                              height: 32,
+                              width: 32,
+                              borderRadius: 16,
+                            }}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Text
+                            className="font-semibold text-slate-700"
+                            style={{ fontSize: responsiveFontSize(12) }}
+                          >
+                            {commentInitials}
+                          </Text>
+                        )}
+                      </View>
+                      
+                      {/* Author Name and Time */}
+                      <View className="flex-1">
+                        <Text
+                          className="font-semibold text-slate-900"
+                          style={{ fontSize: responsiveFontSize(14) }}
+                        >
+                          {comment.author}
+                        </Text>
+                        <Text
+                          className="text-slate-400"
+                          style={{ fontSize: responsiveFontSize(12) }}
+                        >
+                          {formatDateTime(comment.createdAt)}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                    
+                    {/* Comment Content */}
+                    <Text
+                      className="text-slate-600"
+                      style={{
+                        fontSize: responsiveFontSize(14),
+                        lineHeight: responsiveFontSize(20, { min: 18 }),
+                      }}
+                    >
+                      {comment.content}
+                    </Text>
+                  </View>
+                );
+              })}
             </View>
           ) : (
             <Text
@@ -620,7 +796,8 @@ export default function PostDetail() {
           ) : null}
         </View>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

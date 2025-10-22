@@ -341,7 +341,7 @@ export default function SearchScreen() {
         paddingTop: verticalPadding + statusBarOffset,
       }}
     >
-      {/* Search Header */}
+      {/* Search Header with Back Button */}
       <View
         className="bg-white"
         style={{
@@ -352,6 +352,26 @@ export default function SearchScreen() {
           borderBottomColor: '#E2E8F0',
         }}
       >
+        {/* Header with Back Button */}
+        <View className="flex-row items-center mb-4">
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            className="items-center justify-center bg-slate-100 rounded-full mr-3"
+            style={{ width: 40, height: 40 }}
+          >
+            <MaterialCommunityIcons
+              name="arrow-left"
+              size={20}
+              color="#1E293B"
+            />
+          </TouchableOpacity>
+          <Text
+            className="font-semibold text-slate-900"
+            style={{ fontSize: responsiveFontSize(18) }}
+          >
+            Tìm kiếm
+          </Text>
+        </View>
         <View
           className="flex-row items-center bg-slate-50 rounded-xl border border-slate-200"
           style={{

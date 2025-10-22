@@ -74,9 +74,9 @@ const menuItems = [
 
 
 const menuFooter = [
-  { label: 'Về chúng tôi', icon: 'information-outline' },
-  { label: 'Thỏa thuận dịch vụ', icon: 'file-document' },
-  { label: 'Chính sách riêng tư', icon: 'shield-lock-outline' },
+  { label: 'Về chúng tôi', icon: 'information-outline', action: { type: 'stack', screen: ROUTES.STACK.LEGAL_DETAIL, params: { documentId: 'legal-4' } } },
+  { label: 'Thỏa thuận dịch vụ', icon: 'file-document', action: { type: 'stack', screen: ROUTES.STACK.LEGAL_DETAIL, params: { documentId: 'legal-3' } } },
+  { label: 'Chính sách riêng tư', icon: 'shield-lock-outline', action: { type: 'stack', screen: ROUTES.STACK.LEGAL_DETAIL, params: { documentId: 'legal-5' } } },
 ];
 
 
@@ -185,6 +185,7 @@ function AppHeader({ title, onOpenMenu, onSearch, onAvatarPress, avatarInitials,
 }
 
 function MenuDrawer({ visible, onClose, onSelect }) {
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const spacing = useResponsiveSpacing();
   const { screenPadding, verticalPadding, gapSmall, gapMedium, cardPadding, cardRadius, responsiveFontSize, listContentPaddingBottom } = spacing;
@@ -214,10 +215,20 @@ function MenuDrawer({ visible, onClose, onSelect }) {
 
           <View className="border-t border-slate-200" style={{ marginTop: gapLarge, paddingTop: gapMedium, gap: gapSmall }}>
             {menuFooter.map((item) => (
-              <View key={item.label} className="flex-row items-center" style={{ gap: gapSmall, paddingHorizontal: cardPadding * 0.4 }}>
+              <TouchableOpacity
+                key={item.label}
+                onPress={() => {
+                  if (item.action?.type === 'stack') {
+                    navigation.navigate(item.action.screen, item.action.params);
+                  }
+                }}
+                className="flex-row items-center"
+                style={{ gap: gapSmall, paddingHorizontal: cardPadding * 0.4, paddingVertical: gapSmall }}
+                activeOpacity={0.7}
+              >
                 <MaterialCommunityIcons name={item.icon} size={responsiveFontSize(20)} color="#94A3B8" />
                 <Text className="text-slate-500" style={{ fontSize: responsiveFontSize(14) }}>{item.label}</Text>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>

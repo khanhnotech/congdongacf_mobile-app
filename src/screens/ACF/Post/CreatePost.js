@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -346,16 +348,24 @@ export default function CreatePost() {
   };
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView
       className="flex-1 bg-slate-100"
-      contentContainerStyle={{
-        paddingHorizontal: screenPadding,
-        paddingTop: verticalPadding + statusBarOffset,
-        paddingBottom: gapLarge,
-        gap: gapMedium,
-      }}
-      showsVerticalScrollIndicator={false}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: screenPadding,
+          paddingTop: verticalPadding + statusBarOffset,
+          paddingBottom: screenPadding + 490, // Extra space for keyboard
+          gap: gapMedium,
+        }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        extraScrollHeight={200}
+        automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+      >
       {submitError ? (
         <View
           className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3"
@@ -770,6 +780,7 @@ export default function CreatePost() {
         </Text>
       </TouchableOpacity>
 
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
