@@ -65,7 +65,7 @@ const menuItems = [
   { label: 'Trang chủ', icon: 'home-outline', action: { type: 'tab', screen: ROUTES.TABS.HOME } },
   { label: 'Mới nhất', icon: 'new-box', action: { type: 'tab', screen: ROUTES.TABS.LATEST } },
   { label: 'Xu hướng', icon: 'trending-up', action: { type: 'tab', screen: ROUTES.TABS.PORTAL } },
-  { label: 'Văn bản pháp luật', icon: 'file-document-outline', action: { type: 'stack', screen: ROUTES.STACK.LEGAL_LIST } },
+  { label: 'Văn bản pháp luật', icon: 'file-document-outline', action: { type: 'stack', screen: ROUTES.STACK.DOCUMENT } },
   { label: 'Media', icon: 'image-multiple-outline', action: { type: 'stack', screen: ROUTES.STACK.MEDIA_LIBRARY } },
   { label: 'Liên hệ', icon: 'email-outline', action: { type: 'stack', screen: ROUTES.STACK.CONTACT_FORM } },
 ];

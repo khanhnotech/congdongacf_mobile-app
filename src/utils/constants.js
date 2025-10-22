@@ -33,6 +33,7 @@ export const ROUTES = {
     MEDIA_LIBRARY: 'MediaLibrary',
     PORTAL: 'Portal',
     SEARCH: 'Search',
+    DOCUMENT: 'Document',
   },
 };
 

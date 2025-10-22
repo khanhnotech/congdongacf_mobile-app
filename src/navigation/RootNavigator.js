@@ -20,6 +20,7 @@ import CreatePost from '../screens/ACF/Post/CreatePost';
 import PostDetail from '../screens/ACF/Post/PostDetail';
 import PortalScreen from '../screens/Portal/PortalScreen';
 import SearchScreen from '../screens/ACF/Search/SearchScreen';
+import DocumentScreen from '../screens/ACF/Document/DocumentScreen';
 import { ROUTES } from '../utils/constants';
 
 const Stack = createNativeStackNavigator();
@@ -120,6 +121,11 @@ export default function RootNavigator() {
       <Stack.Screen
         name={ROUTES.STACK.SEARCH}
         component={SearchScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={ROUTES.STACK.DOCUMENT}
+        component={DocumentScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

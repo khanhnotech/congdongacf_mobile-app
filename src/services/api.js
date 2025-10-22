@@ -8,7 +8,7 @@ const normalizeBaseUrl = (value) => {
 };
 
 const API_BASE_URL =
-  normalizeBaseUrl(EXPO_PUBLIC_API_BASE) || 'http://192.168.1.15:3000';
+  normalizeBaseUrl(EXPO_PUBLIC_API_BASE) || 'http://localhost:3000';
 
 const serializeParams = (params = {}) => {
   const entries = Object.entries(params).flatMap(([key, value]) => {

@@ -75,6 +75,27 @@ export default function PostCard({ post, onPress, onToggleLike, likePending = fa
     }
   };
 
+  const handleProfilePress = () => {
+    const userId = post.authorId || post.author_id;
+    const userName = post.author;
+    console.log('PostCard: Navigating to profile with:', { userId, userName, post: post });
+    
+    // Fallback nếu không có ID, sử dụng tên để tìm kiếm
+    if (!userId) {
+      console.log('PostCard: No userId, using userName for search');
+      navigation.navigate(ROUTES.STACK.PROFILE_VIEW, { 
+        userId: null,
+        userName: userName,
+        searchBy: 'name'
+      });
+    } else {
+      navigation.navigate(ROUTES.STACK.PROFILE_VIEW, { 
+        userId: userId,
+        userName: userName 
+      });
+    }
+  };
+
   const gapLarge = spacingGapLarge ?? gapMedium * 1.6;
   const avatarSize = responsiveSpacing(42, { min: 36, max: 52 });
   const pillHorizontal = Math.max(chipPaddingHorizontal + 2, 14);
@@ -98,7 +119,8 @@ export default function PostCard({ post, onPress, onToggleLike, likePending = fa
       }}
     >
       <View className="flex-row items-center" style={{ gap: gapSmall }}>
-        <View
+        <TouchableOpacity
+          onPress={handleProfilePress}
           className="items-center justify-center bg-slate-200"
           style={{
             height: avatarSize,
@@ -109,14 +131,16 @@ export default function PostCard({ post, onPress, onToggleLike, likePending = fa
           <Text className="font-semibold text-slate-700" style={{ fontSize: responsiveFontSize(13) }}>
             {initials}
           </Text>
-        </View>
+        </TouchableOpacity>
         <View className="flex-1">
-          <Text
-            className="font-semibold text-red-600"
-            style={{ fontSize: responsiveFontSize(14, { min: 12 }) }}
-          >
-            {post.author}
-          </Text>
+          <TouchableOpacity onPress={handleProfilePress}>
+            <Text
+              className="font-semibold text-red-600"
+              style={{ fontSize: responsiveFontSize(14, { min: 12 }) }}
+            >
+              {post.author}
+            </Text>
+          </TouchableOpacity>
           <Text className="text-slate-400" style={{ fontSize: responsiveFontSize(12, { min: 10 }) }}>
             {formatDateTime(post.createdAt)}
           </Text>

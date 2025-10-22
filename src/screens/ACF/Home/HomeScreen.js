@@ -4,6 +4,7 @@ import TopicChip from '../../../components/TopicChip';
 import PostCard from '../../../components/PostCard';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyState from '../../../components/EmptyState';
+import TopMembersCard from '../../../components/TopMembersCard';
 import { usePosts } from '../../../hooks/usePosts';
 import { useTopics } from '../../../hooks/useTopics';
 import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
@@ -77,46 +78,15 @@ export default function HomeScreen() {
   );
 
   const listHeader = useMemo(
-    () => (
-      <View style={{ gap: gapLarge }}>
-        <View
-          className="bg-red-500 shadow"
-          style={{
-            padding: cardPadding,
-            borderRadius: cardRadius,
-            minHeight: heroHeight,
-            justifyContent: 'center',
-            gap: gapSmall,
-          }}
-        >
-          <Text
-            className="uppercase tracking-wider text-white/80"
-            style={{ fontSize: responsiveFontSize(12, { min: 11 }) }}
-          >
-            Cộng đồng ACF
-          </Text>
-          <Text
-            className="font-black text-white"
-            style={{
-              fontSize: responsiveFontSize(26, { min: 22, max: 30 }),
-              lineHeight: responsiveFontSize(32, { min: 28, max: 36 }),
-            }}
-          >
-            Hệ thống phòng chống hàng giả Bảo vệ người tiêu dùng Việt Nam
-          </Text>
-          <Text
-            className="text-white/80"
-            style={{
-              fontSize: responsiveFontSize(14),
-              lineHeight: responsiveFontSize(20, { min: 18 }),
-            }}
-          >
-            Khám phá hoạt động, chủ đề và media nổi bật trong tuần này.
-          </Text>
-        </View>
+    () => {
+      console.log('HomeScreen: Rendering listHeader with TopMembersCard');
+      return (
+        <View style={{ gap: gapLarge }}>
+          {/* Top Members Section */}
+          <TopMembersCard />
 
-        {/* Topic Filter Section */}
-        <View style={{ gap: gapSmall }}>
+          {/* Topic Filter Section */}
+          <View style={{ gap: gapSmall }}>
           <View
             className="flex-row items-center justify-between"
             style={{ marginBottom: gapSmall }}
@@ -165,8 +135,9 @@ export default function HomeScreen() {
             Bài viết mới nhất
           </Text>
         </View>
-      </View>
-    ),
+        </View>
+      );
+    },
     [
       activeTopic,
       cardPadding,
