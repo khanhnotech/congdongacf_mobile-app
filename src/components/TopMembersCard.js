@@ -116,7 +116,12 @@ const TopMembersCard = React.memo(() => {
       if (businessmenPage === 1) {
         setAllBusinessmen(businessmenData.data);
       } else {
-        setAllBusinessmen(prev => [...prev, ...businessmenData.data]);
+        setAllBusinessmen(prev => {
+          // Create a map to avoid duplicates based on member ID
+          const existingIds = new Set(prev.map(member => member.id));
+          const newMembers = businessmenData.data.filter(member => !existingIds.has(member.id));
+          return [...prev, ...newMembers];
+        });
       }
     }
   }, [businessmenData, businessmenPage]);
@@ -126,7 +131,12 @@ const TopMembersCard = React.memo(() => {
       if (kolsPage === 1) {
         setAllKols(kolData.data);
       } else {
-        setAllKols(prev => [...prev, ...kolData.data]);
+        setAllKols(prev => {
+          // Create a map to avoid duplicates based on member ID
+          const existingIds = new Set(prev.map(member => member.id));
+          const newMembers = kolData.data.filter(member => !existingIds.has(member.id));
+          return [...prev, ...newMembers];
+        });
       }
     }
   }, [kolData, kolsPage]);
@@ -291,8 +301,10 @@ const TopMembersCard = React.memo(() => {
             scrollEventThrottle={400}
           >
             {businessmen.map((member, index) => {
+              // Create a unique key that combines section, member ID, and index
+              const uniqueKey = `businessman-${member.id || `temp-${index}`}-${index}`;
               return (
-              <View key={member.id || index} className="mr-4" style={{ width: 150 }}>
+              <View key={uniqueKey} className="mr-4" style={{ width: 150 }}>
                 <View className="rounded-xl p-4 border-2 border-red-100" style={{
                   backgroundColor: 'linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%)',
                   shadowColor: '#DC2626',
@@ -443,8 +455,10 @@ const TopMembersCard = React.memo(() => {
             scrollEventThrottle={400}
           >
             {kols.map((member, index) => {
+              // Create a unique key that combines section, member ID, and index
+              const uniqueKey = `kol-${member.id || `temp-${index}`}-${index}`;
               return (
-              <View key={member.id || index} className="mr-4" style={{ width: 150 }}>
+              <View key={uniqueKey} className="mr-4" style={{ width: 150 }}>
                 <View className="rounded-xl p-4 border-2 border-yellow-100" style={{
                   backgroundColor: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
                   shadowColor: '#F59E0B',

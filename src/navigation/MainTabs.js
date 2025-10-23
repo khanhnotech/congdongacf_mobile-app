@@ -402,8 +402,8 @@ function DraggablePortalButton({ onPress }) {
   const minY = Math.max(FLOATING_MARGIN + insets.top, FLOATING_MARGIN);
   const maxY = Math.max(minY, height - buttonSize - insets.bottom - FLOATING_MARGIN);
 
-  const initialX = maxX;
-  const initialY = Math.max(minY, maxY - 150); // Logo ACF nằm trên chat button (180px từ bottom)
+  const initialX = maxX - 10; // Di chuyển logo ACF qua trái 40px
+  const initialY = Math.max(minY, maxY - 180); // Logo ACF nằm cao hơn chat button (180px từ bottom)
 
   useEffect(() => {
     const boundedX = clamp(lastPosition.current.x || initialX, minX, maxX);
@@ -453,8 +453,6 @@ function DraggablePortalButton({ onPress }) {
         alignItems: 'center', 
         justifyContent: 'center',
         // No border for small screens
-        borderWidth: width <= 360 ? 0 : 2,
-        borderColor: width <= 360 ? 'transparent' : '#ffffff',
         ...Platform.select({ 
           ios: { 
             shadowColor: '#000', 
@@ -462,7 +460,6 @@ function DraggablePortalButton({ onPress }) {
             shadowRadius: 8, 
             shadowOffset: { width: 0, height: 6 } 
           }, 
-          android: { elevation: 10 } 
         }) 
       }}>
         <Image source={require('../assets/logo.png')} style={{ width: buttonSize - 10, height: buttonSize - 10 }} resizeMode="contain" />

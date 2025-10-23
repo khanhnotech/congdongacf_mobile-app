@@ -163,7 +163,7 @@ const PortalScreen = () => {
       >
         <View 
           className="flex-row items-center"
-          style={{ marginBottom: width <= 360 ? 12 : 24 }}
+          style={{ marginBottom: width <= 360 ? 8 : 16 }}
         >
           <View 
             className="relative items-center justify-center"
