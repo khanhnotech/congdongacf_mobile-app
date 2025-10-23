@@ -5,18 +5,18 @@ const PRESETS = [
   {
     key: 'xs',
     maxWidth: 360,
-    screenPadding: 16,
-    verticalPadding: 18,
-    cardPadding: 16,
-    cardRadius: 20,
-    sectionGap: 12,
-    listGap: 12,
-    contentMaxWidth: 420,
-    inputPaddingVertical: 11,
-    buttonPaddingVertical: 12,
-    chipPaddingHorizontal: 14,
-    chipPaddingVertical: 8,
-    heroHeight: 180,
+    screenPadding: 12,
+    verticalPadding: 14,
+    cardPadding: 12,
+    cardRadius: 16,
+    sectionGap: 8,
+    listGap: 8,
+    contentMaxWidth: 340,
+    inputPaddingVertical: 10,
+    buttonPaddingVertical: 10,
+    chipPaddingHorizontal: 12,
+    chipPaddingVertical: 6,
+    heroHeight: 160,
     gridColumns: 2,
   },
   {
@@ -109,14 +109,14 @@ export function useResponsiveSpacing() {
     return PRESETS[PRESETS.length - 1];
   }, [width]);
 
-  const scale = useMemo(() => clamp(width / 393, 0.85, 1.25), [width]);
-  const fontScale = useMemo(() => clamp(width / 393, 0.9, 1.22), [width]);
+  const scale = useMemo(() => clamp(width / 390, 0.8, 1.3), [width]);
+  const fontScale = useMemo(() => clamp(width / 390, 0.85, 1.25), [width]);
 
   const responsiveFontSize = useCallback(
     (value, options = {}) => {
       const scaled = value * fontScale;
-      const minValue = options.min ?? value * 0.82;
-      const maxValue = options.max ?? value * 1.28;
+      const minValue = options.min ?? value * 0.75;
+      const maxValue = options.max ?? value * 1.35;
       return Math.round(clamp(scaled, minValue, maxValue));
     },
     [fontScale],

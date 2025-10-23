@@ -63,21 +63,24 @@ const PortalScreen = () => {
       return { cardWidth: 140, gapSpacing: 16 };
     }
 
-    // if (width >= 1024) {
-    //   const gap = 22;
-    //   const columns = 4;
-    //   const available = width - horizontalPadding - gap * (columns - 1);
-    //   return { cardWidth: available / columns, gapSpacing: gap };
-    // }
+    // For very small screens (320px), use 2 columns
+    if (width <= 360) {
+      const gap = 12;
+      const columns = 2;
+      const available = width - horizontalPadding - gap * (columns - 1);
+      return { cardWidth: available / columns, gapSpacing: gap };
+    }
 
-    if (width >= 768) {
-      const gap = 18;
+    // For medium screens (361-767px), use 3 columns
+    if (width < 768) {
+      const gap = 14;
       const columns = 3;
       const available = width - horizontalPadding - gap * (columns - 1);
       return { cardWidth: available / columns, gapSpacing: gap };
     }
 
-    const gap = 14;
+    // For large screens (768px+), use 3 columns
+    const gap = 18;
     const columns = 3;
     const available = width - horizontalPadding - gap * (columns - 1);
     return { cardWidth: available / columns, gapSpacing: gap };
@@ -99,7 +102,7 @@ const PortalScreen = () => {
       onPress={() => handleAppPress(app)}
       style={{
         width: cardWidth,
-        padding: 18,
+        padding: width <= 360 ? 12 : 18,
         marginBottom: gapSpacing,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 3 },
@@ -108,13 +111,39 @@ const PortalScreen = () => {
         elevation: 4,
       }}
     >
-      <View className="mb-3.5 h-[55px] w-[55px] items-center justify-center rounded-[16px] border-2 border-red-500 bg-rose-50">
-        <MaterialCommunityIcons name={app.icon} size={30} color="#DC2626" />
+      <View 
+        className="items-center justify-center rounded-[16px] border-2 border-red-500 bg-rose-50"
+        style={{
+          height: width <= 360 ? 45 : 55,
+          width: width <= 360 ? 45 : 55,
+          marginBottom: width <= 360 ? 8 : 14,
+        }}
+      >
+        <MaterialCommunityIcons 
+          name={app.icon} 
+          size={width <= 360 ? 24 : 30} 
+          color="#DC2626" 
+        />
       </View>
-      <Text className="text-center text-sm font-semibold text-slate-800 leading-5">
+      <Text 
+        className="text-center text-sm font-semibold text-slate-800 leading-5"
+        numberOfLines={2}
+        style={{ 
+          fontSize: width <= 360 ? 12 : 14,
+          lineHeight: width <= 360 ? 16 : 20
+        }}
+      >
         {app.title}
       </Text>
-      <Text className="mt-2 text-center text-xs text-slate-500 leading-4">
+      <Text 
+        className="text-center text-xs text-slate-500 leading-4"
+        numberOfLines={2}
+        style={{ 
+          fontSize: width <= 360 ? 10 : 12,
+          lineHeight: width <= 360 ? 14 : 16,
+          marginTop: width <= 360 ? 4 : 8,
+        }}
+      >
         {app.description}
       </Text>
     </TouchableOpacity>
@@ -122,9 +151,9 @@ const PortalScreen = () => {
   return (
     <SafeAreaView className="flex-1 bg-slate-100">
       <View
-        className="bg-red-600 px-5 py-6"
+        className="bg-red-600 px-5"
         style={{
-          // paddingTop: insets.top,
+          paddingVertical: width <= 360 ? 12 : 24,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.15,
@@ -132,30 +161,56 @@ const PortalScreen = () => {
           elevation: 8,
         }}
       >
-        <View className="mb-6 flex-row items-center">
-          <View className="relative mr-5 h-12 w-14 items-center justify-center">
+        <View 
+          className="flex-row items-center"
+          style={{ marginBottom: width <= 360 ? 12 : 24 }}
+        >
+          <View 
+            className="relative items-center justify-center"
+            style={{ 
+              marginRight: width <= 360 ? 12 : 20,
+              height: width <= 360 ? 40 : 48,
+              width: width <= 360 ? 40 : 56,
+            }}
+          >
             <Image
               source={require('../../assets/logo.png')}
-              className="h-12 w-12 rounded-lg"
+              style={{
+                height: width <= 360 ? 40 : 48,
+                width: width <= 360 ? 40 : 48,
+                borderRadius: 8,
+              }}
               resizeMode="contain"
             />
           </View>
           <View className="flex-1">
-            <Text className="text-base font-bold uppercase tracking-wide text-white">
+            <Text 
+              className="font-bold uppercase tracking-wide text-white"
+              style={{
+                fontSize: width <= 360 ? 12 : 16,
+                lineHeight: width <= 360 ? 16 : 20,
+              }}
+            >
               Cổng thông tin phòng chống hàng giả ACF
             </Text>
-            <Text className="text-sm font-medium text-white/90">
+            <Text 
+              className="font-medium text-white/90"
+              style={{
+                fontSize: width <= 360 ? 10 : 14,
+                lineHeight: width <= 360 ? 14 : 18,
+              }}
+            >
               Cụm các chức năng chuyên dụng
             </Text>
           </View>
         </View>
-        <View className="flex-row items-center" style={{ gap: 10 }}>
+        <View className="flex-row items-center" style={{ gap: width <= 360 ? 6 : 10 }}>
           <View
             className="flex-1 flex-row items-center rounded-full bg-white"
             style={{
-              paddingHorizontal: 18,
-              paddingVertical: 14,
-              gap: 12,
+              paddingHorizontal: width <= 360 ? 14 : 18,
+              paddingVertical: width <= 360 ? 6 : 14,
+              gap: width <= 360 ? 6 : 12,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.1,
@@ -163,19 +218,28 @@ const PortalScreen = () => {
               elevation: 3,
             }}
           >
-            <MaterialCommunityIcons name="magnify" size={20} color="#666666" />
+            <MaterialCommunityIcons 
+              name="magnify" 
+              size={width <= 360 ? 16 : 20} 
+              color="#666666" 
+            />
             <TextInput
-              className="flex-1 text-base font-medium text-slate-700"
+              className="flex-1 font-medium text-slate-700"
               placeholder="Tìm kiếm ứng dụng"
               placeholderTextColor="#666666"
               value={searchText}
               onChangeText={setSearchText}
+              style={{
+                fontSize: width <= 360 ? 12 : 16,
+              }}
             />
           </View>
           <TouchableOpacity
             activeOpacity={0.85}
-            className="rounded-full bg-white px-6 py-3.5"
+            className="rounded-full bg-white"
             style={{
+              paddingHorizontal: width <= 360 ? 10 : 18,
+              paddingVertical: width <= 360 ? 6 : 14,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.1,
@@ -183,7 +247,14 @@ const PortalScreen = () => {
               elevation: 3,
             }}
           >
-            <Text className="text-base font-semibold text-red-600">Đăng nhập</Text>
+            <Text 
+              className="font-semibold text-red-600"
+              style={{
+                fontSize: width <= 360 ? 12 : 16,
+              }}
+            >
+              Đăng nhập
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

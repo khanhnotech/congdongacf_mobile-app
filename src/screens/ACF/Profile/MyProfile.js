@@ -541,7 +541,7 @@ export default function MyProfile() {
               const liked = Boolean(article.liked ?? article.raw?.liked);
               return (
                 <TouchableOpacity
-                  key={article.id ?? article.slug ?? `article-${Math.random()}`}
+                  key={article.id ?? article.slug ?? `article-${index}`}
                   activeOpacity={0.85}
                   onPress={() => handleOpenArticleDetail(article)}
                   className="border border-red-100 bg-white shadow-sm"

@@ -639,7 +639,7 @@ export default function ProfileView() {
           ) : (
             transformArticlesForPostCard(profileArticlesQuery.data?.items)?.map((article, index) => (
               <PostCard
-                key={article.id || index}
+                key={article.id || `article-${index}`}
                 post={article}
                 onPress={() => {
                   navigation.navigate(ROUTES.STACK.POST_DETAIL, {

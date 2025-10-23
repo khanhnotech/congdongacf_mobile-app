@@ -389,15 +389,18 @@ const FLOATING_MARGIN = 16;
 function DraggablePortalButton({ onPress }) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
+  
+  // Responsive floating button size
+  const buttonSize = width <= 360 ? 52 : 68;
   const pan = useRef(new Animated.ValueXY()).current;
   const scale = useRef(new Animated.Value(1)).current;
   const lastPosition = useRef({ x: 0, y: 0 });
   const dragOrigin = useRef({ x: 0, y: 0 });
 
   const minX = FLOATING_MARGIN;
-  const maxX = Math.max(minX, width - FLOATING_BUTTON_SIZE - FLOATING_MARGIN);
+  const maxX = Math.max(minX, width - buttonSize - FLOATING_MARGIN);
   const minY = Math.max(FLOATING_MARGIN + insets.top, FLOATING_MARGIN);
-  const maxY = Math.max(minY, height - FLOATING_BUTTON_SIZE - insets.bottom - FLOATING_MARGIN);
+  const maxY = Math.max(minY, height - buttonSize - insets.bottom - FLOATING_MARGIN);
 
   const initialX = maxX;
   const initialY = Math.max(minY, maxY - 150); // Logo ACF nằm trên chat button (180px từ bottom)
@@ -441,9 +444,28 @@ function DraggablePortalButton({ onPress }) {
   }), [animateScale, handleNavigate, maxX, maxY, minX, minY, pan]);
 
   return (
-    <Animated.View {...panResponder.panHandlers} style={{ position: 'absolute', top: 0, left: 0, width: FLOATING_BUTTON_SIZE, height: FLOATING_BUTTON_SIZE, zIndex: 999, transform: [...pan.getTranslateTransform(), { scale }] }}>
-      <View style={{ height: FLOATING_BUTTON_SIZE, width: FLOATING_BUTTON_SIZE, borderRadius: FLOATING_BUTTON_SIZE / 2, backgroundColor: '#DC2626', alignItems: 'center', justifyContent: 'center', ...Platform.select({ ios: { shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 8, shadowOffset: { width: 0, height: 6 } }, android: { elevation: 10 } }) }}>
-        <Image source={require('../assets/logo.png')} style={{ width: FLOATING_BUTTON_SIZE - 10, height: FLOATING_BUTTON_SIZE - 10 }} resizeMode="contain" />
+    <Animated.View {...panResponder.panHandlers} style={{ position: 'absolute', top: 0, left: 0, width: buttonSize, height: buttonSize, zIndex: 999, transform: [...pan.getTranslateTransform(), { scale }] }}>
+      <View style={{ 
+        height: buttonSize, 
+        width: buttonSize, 
+        borderRadius: buttonSize / 2, 
+        backgroundColor: '#e81107', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        // No border for small screens
+        borderWidth: width <= 360 ? 0 : 2,
+        borderColor: width <= 360 ? 'transparent' : '#ffffff',
+        ...Platform.select({ 
+          ios: { 
+            shadowColor: '#000', 
+            shadowOpacity: 0.22, 
+            shadowRadius: 8, 
+            shadowOffset: { width: 0, height: 6 } 
+          }, 
+          android: { elevation: 10 } 
+        }) 
+      }}>
+        <Image source={require('../assets/logo.png')} style={{ width: buttonSize - 10, height: buttonSize - 10 }} resizeMode="contain" />
       </View>
     </Animated.View>
   );

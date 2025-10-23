@@ -15,6 +15,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useResponsiveSpacing } from '../../../hooks/useResponsiveSpacing';
 import documentService from '../../../services/document.service';
 
 const DocumentScreen = () => {
@@ -23,6 +24,18 @@ const DocumentScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  
+  const {
+    screenPadding,
+    verticalPadding,
+    statusBarOffset,
+    gapSmall,
+    gapMedium,
+    cardPadding,
+    cardRadius,
+    responsiveFontSize,
+    listContentPaddingBottom,
+  } = useResponsiveSpacing();
 
   // Fetch documents
   const {
@@ -197,7 +210,7 @@ const DocumentScreen = () => {
         </TouchableOpacity>
         {categories.map((category, index) => (
           <TouchableOpacity
-            key={index}
+            key={`category-${index}`}
             className={`rounded-full px-4 py-2 mr-2 mb-2 ${
               selectedCategory === category ? 'bg-red-500' : 'bg-gray-200'
             }`}
@@ -235,7 +248,7 @@ const DocumentScreen = () => {
         </TouchableOpacity>
         {years.map((year, index) => (
           <TouchableOpacity
-            key={index}
+            key={`year-${index}`}
             className={`rounded-full px-4 py-2 mr-2 mb-2 ${
               selectedYear === year ? 'bg-red-500' : 'bg-gray-200'
             }`}
@@ -352,7 +365,7 @@ const DocumentScreen = () => {
             />
           }
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={{ paddingBottom: listContentPaddingBottom }}
         />
       )}
     </SafeAreaView>

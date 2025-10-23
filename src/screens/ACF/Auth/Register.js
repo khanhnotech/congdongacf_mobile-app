@@ -23,6 +23,7 @@ export default function Register() {
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
 
   const {
+    width,
     screenPadding,
     verticalPadding,
     contentMaxWidth,
@@ -78,28 +79,34 @@ export default function Register() {
     <KeyboardAvoidingView
       className="flex-1 bg-red-600"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : (width <= 360 ? 40 : 20)}
+      style={{ flex: 1, justifyContent: 'center' }}
+      enabled={true}
     >
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: screenPadding,
           paddingVertical: verticalPadding,
+          paddingBottom: verticalPadding + (width <= 360 ? 80 : 200), // Extra padding for keyboard
           flexGrow: 1,
           justifyContent: 'center',
+          minHeight: '100%', // Ensure full height
         }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        bounces={true}
+        alwaysBounceVertical={false}
       >
-      <View
-        className="bg-white shadow-sm"
-        style={{
-          padding: cardPadding,
-          borderRadius: cardRadius,
-          width: '100%',
-          maxWidth: contentMaxWidth,
-          alignSelf: 'center',
-        }}
-      >
+          <View
+            className="bg-white shadow-sm"
+            style={{
+              padding: cardPadding,
+              borderRadius: cardRadius,
+              width: '100%',
+              maxWidth: contentMaxWidth,
+              alignSelf: 'center',
+            }}
+          >
         <Text
           className="font-bold text-slate-900"
           style={{ fontSize: responsiveFontSize(28) }}
@@ -242,7 +249,7 @@ export default function Register() {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

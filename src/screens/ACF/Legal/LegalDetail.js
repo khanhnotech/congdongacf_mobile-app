@@ -187,7 +187,7 @@ export default function LegalDetail() {
 
         {/* Sections */}
         {sections.map((section, index) => (
-          <View key={index} style={{ marginBottom: gapMedium }}>
+          <View key={`section-${index}`} style={{ marginBottom: gapMedium }}>
             {/* Section Title */}
             <Text
               className="font-bold text-red-600 mb-3"
@@ -208,7 +208,7 @@ export default function LegalDetail() {
                 
                 if (isBulletPoint || isSubBullet) {
                   return (
-                    <View key={lineIndex} className="flex-row mb-1" style={{ paddingLeft: isSubBullet ? gapMedium : 0 }}>
+                    <View key={`section-${index}-line-${lineIndex}`} className="flex-row mb-1" style={{ paddingLeft: isSubBullet ? gapMedium : 0 }}>
                       <Text className="text-red-600 mr-2" style={{ fontSize: responsiveFontSize(14) }}>
                         •
                       </Text>
@@ -227,7 +227,7 @@ export default function LegalDetail() {
                 
                 return (
                   <Text
-                    key={lineIndex}
+                    key={`section-${index}-line-${lineIndex}`}
                     className="text-slate-700 mb-2"
                     style={{
                       fontSize: responsiveFontSize(14),
@@ -242,7 +242,7 @@ export default function LegalDetail() {
 
             {/* Subsections */}
             {section.subsections && section.subsections.map((subsection, subIndex) => (
-              <View key={subIndex} style={{ marginTop: gapSmall, marginBottom: gapSmall }}>
+              <View key={`section-${index}-subsection-${subIndex}`} style={{ marginTop: gapSmall, marginBottom: gapSmall }}>
                 {/* Subsection Title */}
                 <Text
                   className="font-semibold text-red-500 mb-2"
@@ -264,7 +264,7 @@ export default function LegalDetail() {
                     
                     if (isBulletPoint || isSubBullet) {
                       return (
-                        <View key={lineIndex} className="flex-row mb-1" style={{ paddingLeft: isSubBullet ? gapMedium : 0 }}>
+                        <View key={`section-${index}-subsection-${subIndex}-line-${lineIndex}`} className="flex-row mb-1" style={{ paddingLeft: isSubBullet ? gapMedium : 0 }}>
                           <Text className="text-red-500 mr-2" style={{ fontSize: responsiveFontSize(13) }}>
                             •
                           </Text>
@@ -283,7 +283,7 @@ export default function LegalDetail() {
                     
                     return (
                       <Text
-                        key={lineIndex}
+                        key={`section-${index}-subsection-${subIndex}-line-${lineIndex}`}
                         className="text-slate-600 mb-2"
                         style={{
                           fontSize: responsiveFontSize(13),

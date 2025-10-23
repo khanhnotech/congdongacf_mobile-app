@@ -2,10 +2,9 @@ import React, { useRef, useEffect, useMemo, useCallback } from 'react';
 import { TouchableOpacity, View, Text, Animated, PanResponder, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useWindowDimensions } from 'react-native';
+import { useResponsiveSpacing } from '../hooks/useResponsiveSpacing';
 
-const BUBBLE_SIZE = 60;
-const BUBBLE_MARGIN = 16;
+// These will be calculated responsively
 
 function clamp(value, min, max) {
   if (max < min) return min;
@@ -14,11 +13,15 @@ function clamp(value, min, max) {
 
 const ChatBubble = ({ onPress, isVisible = true, unreadCount = 0 }) => {
   const insets = useSafeAreaInsets();
-  const { width, height } = useWindowDimensions();
+  const { responsiveSpacing, width, height } = useResponsiveSpacing();
   const pan = useRef(new Animated.ValueXY()).current;
   const scale = useRef(new Animated.Value(1)).current;
   const lastPosition = useRef({ x: 0, y: 0 });
   const dragOrigin = useRef({ x: 0, y: 0 });
+
+  // Responsive bubble size and margin
+  const BUBBLE_SIZE = responsiveSpacing(60);
+  const BUBBLE_MARGIN = responsiveSpacing(16);
 
   if (!isVisible) return null;
 
