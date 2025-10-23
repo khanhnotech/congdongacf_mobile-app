@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "acf-rn-app",
-    "slug": "acf-rn-app",
+    "name": "CỔNG THÔNG TIN CHỐNG HÀNG GIẢ ACF",
+    "slug": "cổng-thông-tin-chống-hàng-giả-acf",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "image": "./assets/splash-icon.svg",
+      "resizeMode": "cover",
+      "backgroundColor": "#000000"
     },
     "ios": {
       "supportsTablet": true
@@ -19,13 +19,13 @@
       "package": "vn.acf.community",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/adaptive-icon.svg",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.svg"
     },
     "extra": {
       "eas": {
